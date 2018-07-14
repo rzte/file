@@ -1,0 +1,166 @@
+[参考链接](https://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000 "参考链接")
+### 配置
+
+```
+git config --global user.name "Your Name"
+git config --global user.email "email@example.com"
+git config -l
+```
+注意`git config`的`--global`参数，用了这个参数，表示你这台机器上所有的Git仓库都会使用这个配置，当然也可以对某个仓库指定不同的用户名和Email地址。
+
+---
+### 创建版本库
+
+```shell
+# 创建一个空目录
+$ mkdir project
+
+# git init 把这个目录变成git可以管理的仓库
+$ git init
+Initialized empty Git repository in /Users/michael/learngit/.git/
+
+# 添加文件到git仓库
+$ git add readme.txt
+$ git add file1.txt file2.txt
+
+# git commit 告诉git，把文件提交到仓库
+$ git commit -m "info..."
+```
+
+### 版本管理
+
+**`git status`命令可以让我们时刻掌握仓库当前的状态**
+
+```
+$ git status 
+位于分支 master
+无文件要提交，干净的工作区
+$ touch test
+$ git status 
+位于分支 master
+未跟踪的文件:
+  （使用 "git add <文件>..." 以包含要提交的内容）
+
+	test
+
+提交为空，但是存在尚未跟踪的文件（使用 "git add" 建立跟踪）
+```
+
+**`git log`可以查看历史纪录**
+
+```
+$ git log --pretty=oneline
+14bc7f762abfd2caca415d95741cd9f7f4d30cb2 (HEAD -> master) -
+```
+
+**`git reset`可以进行版本回退**
+
+```
+# 现在有两个版本
+$ git log
+commit ceb8db20e4198cfe7741d4cb88616fc51f54ed25 (HEAD -> master)
+Author: rz <1574805581@qq.com>
+Date:   Thu Jul 5 10:18:07 2018 +0800
+
+    test..
+
+commit 14bc7f762abfd2caca415d95741cd9f7f4d30cb2
+Author: rz <1574805581@qq.com>
+Date:   Wed Jul 4 22:10:11 2018 +0800
+
+    -
+
+# 存在test文件
+$ ls
+app  db.mongo  __pycache__  requirements.txt  run.py  test  test.py
+
+# 回退至14bc7f7这个版本
+$ git reset --hard 14bc
+HEAD 现在位于 14bc7f7 -
+
+# 没有test文件了
+$ ls
+app  db.mongo  __pycache__  requirements.txt  run.py  test.py
+
+# 查看log
+$ git log 
+commit 14bc7f762abfd2caca415d95741cd9f7f4d30cb2 (HEAD -> master)
+Author: rz <1574805581@qq.com>
+Date:   Wed Jul 4 22:10:11 2018 +0800
+    -
+```
+
+**`git reflog`可以记录每一次操作的命令：**
+
+```
+$ git reflog
+14bc7f7 (HEAD -> master) HEAD@{0}: reset: moving to 14bc
+ceb8db2 HEAD@{1}: reset: moving to ceb8
+14bc7f7 (HEAD -> master) HEAD@{2}: reset: moving to 14bc
+14bc7f7 (HEAD -> master) HEAD@{3}: reset: moving to 14bc
+ceb8db2 HEAD@{4}: reset: moving to ceb8
+ceb8db2 HEAD@{5}: reset: moving to ceb8
+14bc7f7 (HEAD -> master) HEAD@{6}: reset: moving to 14bc
+ceb8db2 HEAD@{7}: reset: moving to HEAD
+ceb8db2 HEAD@{8}: commit: test..
+14bc7f7 (HEAD -> master) HEAD@{9}: commit (initial): -
+```
+
+- `HEAD`指向的版本就是当前版本，因此，Git允许我们在版本的历史之间穿梭，使用命令git reset --hard commit_id。
+- 穿梭前，用`git log`可以查看提交历史，以便确定要回退到哪个版本。
+- 要重返未来，用`git reflog`查看命令历史，以便确定要回到未来的哪个版本。
+
+**git checkout -- <file>**
+
+`git checkout -- <file>`让这个文件回退到最近一次 git commit 或 git add时的状态，当修改或误删文件时，可以用这个命令来恢复
+```
+$ git checkout -- <file>
+```
+`git checkout -- file`命令中的`--`很重要，没有`--`，就变成了“切换到另一个分支”的命令。
+
+**git reset HEAD <file>**
+
+`git reset`命令可以回退版本也可以把暂存区的修改回退到工作区。当我们用`HEAD`时，表示最新的版本。
+```
+$ git reset HEAD readme.txt
+```
+
+**删除**
+
+`git rm`从版本库中删除文件，然后`git commit`提交
+
+---
+### 远程仓库
+
+- 创建SSH Key
+	若主目录的`.ssh`目录下没有`rd_rsa`和`rd_rsa.pub`这两个文件，需要创建SSH Key：
+	```
+	$ ssh-kengen -t rsa -C "youremail@example.com"
+	```
+
+- GitHub
+	- 在'setting'中的'SSH Keys'页面，点击'Add SSH Key'，添加`rd_rsa.pub`这个文件里的内容
+
+- 关联远程库
+	- 在github中新建一个仓库：`https://github.com/rz-t/test.git`
+	- 使用命令`git remote add origin https://github.com/rz-t/test.git`
+		- 添加后，远程库的名字就算`origin`，这是Git默认的叫法，也可以改称别的。但`origin`这个名字一看就是远程库。
+	- 关联后，使用`git push -u origin master`第一次推送master分支的所有内容
+		- 把本地库的所有内容推送到远程库上
+	- 之后，如果有必要，可以使用`git push origin master`推送最新修改
+
+---
+### 创建分支
+
+- 查看分支：`git branch`
+- 创建分支：`git branch <name>`
+- 切换分支：`git checkout <name>`
+- 创建+切换分支：`git checkout -b <name>`
+- 合并某分支到当前分支：`git merge <name>`
+- 删除分支：`git branch -d <name>`
+
+
+
+
+
+
