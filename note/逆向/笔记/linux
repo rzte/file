@@ -1,0 +1,32 @@
+### linux缓冲区溢出保护机制
+
+- 地址随机化
+	```c
+	rz$ sysctl kernel.randomize_va_space 
+	kernel.randomize_va_space = 2
+	
+	// 关闭内存地址随机化
+	rz$ sudo sysctl -w kernel.randomize_va_space=0
+	```
+
+- 可执行程序的屏蔽保护机制
+	> 对于`Federal`系统，默认会执行可执行程序的屏蔽保护机制，该机制**不允许执行存储在栈中的代码`，`Ubuntu`系统中默认没有采用这种机制
+	```c
+	rz$ sudo sysctl -w kernel.exec-shield=0
+	```
+- gcc编译器gs验证码机制
+	> gcc编译器专门为防止缓冲区溢出而采取的保护措施，具体方法是gcc首先在缓冲区被写入之前在buff的结束地址之后返回改地址之前放入**随机的gs验证码**，并在缓冲区写入操作结束时校验该值。通常缓冲区会从低地址到高地址覆写内存，所以要覆写返回地址就会覆写gs验证码，被识别产生溢出
+	```c
+	// 关闭gcc编译器gs验证码机制
+	$ gcc auto_overflow.c -fno-stack-protector -o auth_overflow
+	```
+- ld链接器堆栈段不可执行机制
+	> ld链接器在链接程序时，如果所有的`.o`文件的堆栈段都标记不可执行，那么整个库的堆栈段才会被标记为不可执行
+	> 相反，只要有一个`.o`文件的堆栈段被标记为可执行，那么整个库的堆栈段被标记为可执行。检查堆栈段可执行性的方法是：
+	- 如果检查ELF库：`readelf -lW a.out | grep GNU_STACK`查看是否有E标记
+	- 如果检查生成的`.o`文件：`scanelf -e a.o`查看是否有X标记
+	
+	```c
+	// 关闭ld链接器不可执行机制的方法是在gcc编译时采用`-z execstack`选项
+	$ gcc -fno-stack-protector -z execstack a.c -o a.out
+	```
