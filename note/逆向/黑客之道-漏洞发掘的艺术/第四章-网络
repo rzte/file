@@ -1,0 +1,195 @@
+### 套接字
+
+套接字是通过操作系统（OS）完成网络通信的一种标准方法.在C语言中,套接字的行为类似于文件,因为它们使用`文件描述符`来标识它们自己.
+
+套接字的行为与文件非常相似,实际上利用套接字描述符可以使用`read()`和`write()` 函数发送接收数据.但是,有几个专门设计用来处理套接字的,在 `/usr/include/sys/sockets.h` 文件中有这些函数原型的定义.
+
+#### 网络字节顺序
+
+`AF_INET`套接字地址结构中使用端口号和IP地址期望遵循网络字节顺序,也就是`big-endian`,与x86的`little-endian`字节顺序相反.可使用如下的转换函数
+
+- `htonl`(long类型的值)
+	主机到网络的long类型;将32位整数从主机的字节顺序转换为网络字节顺序
+	
+- `htons`(short类型的值)
+	主机到网络的short类型;将16位整数从主机的字节顺序转换位网络字节顺序
+	
+- `ntohl`(long类型的值)
+	网络到主机的long类型;将32位整数从网络字节顺序转换为主机的字节顺序
+	
+- `ntohs`(short类型的值)
+	网络到主机的short类型;将16位整数从网络字节顺序转换成主机的字节顺序
+
+为了与所有结构兼容,即使一个主机使用一个具有`big-endian`字节顺序的处理器也仍然使用了这些转换函数
+
+#### Inetrnet地址转换
+
+有一些函数可以把类似 `192.168.1.110` 这种点分十进制格式的字符串与32位整数按照**网络字节**顺序进行相互转换,这些函数在`arpa/inet.h`中定义
+
+- `int inet_aton(const char *cp, struct in_addr *inp);` (ASCII到网络)
+- `char *inet_ntoa(struct in_addr in);` (网络到ASCII)
+
+#### DNS查询
+
+`netdb.h`中存放着与DNS相关的一些函数和结构
+
+- `gethostbyname()`
+	接收一个指向包含着命名地址的字符串作为参数,并返回一个指向hostent结构的指针,错误时返回NULL指针.
+	```c
+	struct hostent
+	{
+		char *h_name;         /* Official name of host.  */
+		char **h_aliases;     /* Alias list.  */
+		int h_addrtype;       /* Host address type.  */
+		int h_length;         /* Length of address.  */
+		char **h_addr_list;       /* List of addresses from name server.  */
+		#ifdef __USE_MISC
+		# define    h_addr  h_addr_list[0] /* Address, for backward compatibility.*/
+		#endif
+	};
+	```
+
+---
+### 网络窃听
+
+数据链路层上的**交换（switched）网络**与**非交换(unswitched)网络**之间也存在区别。在**非交换网络**中，以太网数据经过网络上的每个设备，期望每个系统只查看以其作为目的地址发送的数据包。然而将设备设置为**混杂模式**是非常容易的
+
+大多数抓包程序,例如tcpdump,默认情况下将他们监听的设备设置位混杂模式.可以使用`ifconfig`设置混杂模式
+
+```bash
+rz@rz:~$ ifconfig
+wlp8s0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 192.168.1.103  netmask 255.255.255.0  broadcast 192.168.1.255
+        inet6 fe80::4868:cdf5:3ec6:d626  prefixlen 64  scopeid 0x20<link>
+        ether 0c:84:dc:8a:0f:37  txqueuelen 1000  (以太网)
+        RX packets 3010215  bytes 4173438286 (4.1 GB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 1543854  bytes 164865991 (164.8 MB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+rz@rz:~$ sudo ifconfig wlp8s0 promisc	# 设置为混杂模式
+rz@rz:~$ ifconfig
+wlp8s0: flags=4419<UP,BROADCAST,RUNNING,PROMISC,MULTICAST>  mtu 1500
+        inet 192.168.1.103  netmask 255.255.255.0  broadcast 192.168.1.255
+        inet6 fe80::4868:cdf5:3ec6:d626  prefixlen 64  scopeid 0x20<link>
+        ether 0c:84:dc:8a:0f:37  txqueuelen 1000  (以太网)
+        RX packets 3010404  bytes 4173455499 (4.1 GB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 1544160  bytes 164898648 (164.8 MB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+```
+
+tcpdump是一个极好的通用数据包嗅探器,还有一些专门设计用于搜索用户名和密码的专业窃听工具,比如`dsniff`等.
+
+#### 原始套接字窃听
+
+在使用流式套接字发送和接收时,数据被简介地封装在一个TCP/IP连接中.操作系统负责搜索传输过程中的低级细节、纠错和路由.
+
+使用**原始套接字**可以在较低层对网络进行访问. 在网络的较低层,程序员必须处理所有暴露出来的细节. 通过使用`SOCK_RAW`即可指定原始套接字. 协议可以是`IPPROTO_TCP`、`IPPROTO_UDP`、`IPPROTO_ICMP`.下面是一个使用原始套接字的窃听程序:
+
+```c
+// raw_tcpsniff.c
+
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<sys/socket.h>
+#include<netinet/in.h>
+#include<arpa/inet.h>
+#include"hacking.h"
+
+void main(){
+    int i, recv_length, sockfd;
+    __u_char buffer[9000];
+
+    if((sockfd = socket(PF_INET, SOCK_RAW, IPPROTO_TCP)) == -1)
+        fatal("in socket");
+
+    for(i = 0; i < 3; ++i){
+        recv_length = recv(sockfd, buffer, 8000, 0);
+        printf("%Got a %d byte packet\n", recv_length);
+        dump(buffer, recv_length);
+    }
+}
+```
+
+以上程序要以root运行,因为原始套接字需要root权限.
+
+虽然这个程序会捕获程序包,但是它并不可靠,会丢失一些数据包,尤其是通信量较大时,而且它只捕获TCP数据包，要想捕获UDP或ICMP等数据包要为这两种协议打开额外的原始套接字。
+
+原始套接字另一个问题是，不同系统之间的兼容性非常差。用于linux版的原始套接字很可能在BSD或Solari系统中不能正常工作。
+
+#### libpcap窃听
+
+libpcap的标准程序设计库可用于消除原始套接字的不兼容性。tcpdump和dsniff都是用的libpcap，这使他们在所有系统平台上编译器来都比较容易。
+
+在编译时，必须链接**pcap**库。可以使用带有`-l`标记的`GCC`来链接库：
+
+```c
+gcc pcap_sniff.c -l pcap
+```
+---
+
+```c
+char errbuf[PCAP_ERRBUF_SIZE];	// 错误缓存
+struct pcap_pkthdr header;		// 包含了有关数据包的额外捕获信息，例如数据包何时被捕获以及它的长度
+pcap_t* pcap_handle;			// 类似于文件描述符，但它用来引用一个pcaket-capturing对象
+char* device;
+const u_char* packet;
+```
+
+---
+
+`pcap_lookupdev()`用于查找一个适合窃听的设备。返回设备名称（例如eth0、wlp8s0之类的）
+
+```c
+device = pcap_lookupdev(errbuf);
+if(!device)
+	pcap_fatal("pcap_lookupdev", errbuf);
+printf("Sniffing on device %s\n", device);
+```
+
+---
+
+与套接字函数和文件打开函数类似，函数`pcap_open_live`打开一个`packet-capturing`设备，并返回它的一个句柄。这个函数的**参数**是被窃听的设备、数据包的最大尺寸、一个混杂标志、一个超时值和一个指向错误缓存的指针。
+
+```c
+pcap_handler = pcap_open_live(device, 4096, 1, 0, errbuf); // 以混杂标志捕获数据，所以将混杂标志设置为1
+if(!pcap_handler)
+	pcap_fatal("pcap_open_live", errbuf);
+```
+
+---
+
+`pcap_next()`用来抓取下一个数据包，这个函数的参数是`pcap_handle`和一个指向`pcap_pkthdr`结构的指针，这样函数可以用捕获到的信息填充这个结构。函数返回一个指向数据包的指针。
+
+```c
+// const u_char *pcap_next(pcap_t *p, struct pcap_pkthdr *h);
+for(int i = 0; i < 3; ++i){
+	packet = pcap_next(pcap_handler, &header);		// 抓取下一个数据包，将信息存入header中，返回数据包的指针。
+	printf("Got a %d byte packet\n", header.len);
+	dump(packet, header.len);
+}
+pcap_close(pcap_handler);	// 关闭捕获接口
+```
+---
+
+事实上很少有程序使用`pcap_next()`，因为它不仅不方便而且效率很低。函数`pcap_loop`使用了一个**回调函数**，这意味着向`pcap_loop()`函数传递的是一个函数指针，并且每次捕获一个数据包时都会调用这个函数。
+
+```c
+int pcap_loop(pcap_t *p, int cnt,
+               pcap_handler callback, u_char *user);
+```
+
+第一个参数是pcap句柄，下一个是要捕获的数据包的个数，第三个是回调函数的函数指针。如果cnt设置位-1，则它将一直循环到程序将其中断为止。最后一个参数是可选的指针，他会被传递到回调函数。
+
+回调函数也要遵循某种原型，因为`pcap_loop()`必须调用这个函数。其格式必须如下形式：
+
+```c
+void callblack(u_char* args,    // 可选的参数指针，正好来自`pcap_loop`的最后一个参数
+			const struct pcap_pkthdr* cap_header,  // 这个参数和下面一个参数就与pcap_next相同了
+			const u_char* packet);
+```
+
+---
+
+
