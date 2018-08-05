@@ -1,0 +1,41 @@
+### 非root设备使用gdbserver进行native调试
+
+没有root的设备，在使用gdbserver调试app会遇到权限问题。（emulator没问题）
+
+Android提供了一个**run-as**命令来暂时切换用户，但这个命令有限制，必须是app打开了**debuggable**才行，否则会提示`Package xx is not debuggalbe`错误
+
+```c
+<application android:debuggable="true" ...
+```
+
+#### 开启`debuggable`的作用主要有两个：
+
+- 可以查看该应用的数据（/data/data/com.xxx.xxx/里的数据）
+- 可以使用gdb_server进行native的debug
+
+gdb_server在ndk包下：`android-ndk-r16b/prebuilt/android-arm/gdbserver`
+
+```c
+adb push gdbserver /data/local/tmp/
+adb shell chmod 755 /data/local/tmp/gdbserver
+```
+
+#### 查看所有已安装的apk包：
+
+- adb shell ls -l /data/data/（需root权限才可查看）
+- adb shell pm list package（无需root权限）
+
+```c
+adb shell
+$ ls /data/data/com.xxx/
+ls: /data/data/com.xxx/: Permission denied
+
+$ run-as com.xxx
+$ ls /data/data/com.xxx/
+cache databases lib ...
+```
+
+
+> [非root Android 设备用gdbserver进行native 调试的方法 ](https://www.52pojie.cn/forum.php?mod=viewthread&tid=462161 "非root Android 设备用gdbserver进行native 调试的方法 ")
+
+
