@@ -1,0 +1,19 @@
+### 四大组件
+
+Android系统的四大组件分别是**活动（Activity）、服务（Service）、广播接收器（Broadcast Receiver）和内容提供器（Content Provider）**
+
+- **Activity**
+
+	Activity是所有Android应用程序的门面，凡是在应用中看得到的东西，都是放在活动中
+
+- **Service**
+
+	Service比较低调，无法看到它，它会一直在后台默默运行，即使用户退出了应用，服务仍然是可以继续运行的
+
+- **Broadcast Receiver**
+
+	Broadcast Receiver允许你的应用接收来自各处的广播消息，比如电话、短信等，当然你的应用同样也可向外发出广播消息
+
+- **Content Provider**
+
+	内容提供器则为应用程序之间共享数据提供了可能。比如想要读取系统电话簿中的联系人，就需要通过内容提供器来实现

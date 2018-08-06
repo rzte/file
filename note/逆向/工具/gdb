@@ -6,6 +6,32 @@
 
 [root@redhat home]#gdb 调试文件：启动gdb
 
+---
+### 内存相关
+
+**gcore**： Generate a core dump of a running program with process ID pid。gcore是linux的命令，但是可以在gdb里直接输入`gcore`来dump调试程序的内存
+
+dump -- Dump target code/data to a local file
+dump binary -- Write target code/data to a raw binary file
+dump binary memory -- Write contents of memory to a raw binary file
+dump binary value -- Write the value of an expression to a raw binary file
+dump ihex -- Write target code/data to an intel hex file
+dump ihex memory -- Write contents of memory to an ihex file
+dump ihex value -- Write the value of an expression to an ihex file
+dump memory -- Write contents of memory to a raw binary file
+dump srec -- Write target code/data to an srec file
+dump srec memory -- Write contents of memory to an srec file
+dump srec value -- Write the value of an expression to an srec file
+dump tekhex -- Write target code/data to a tekhex file
+dump tekhex memory -- Write contents of memory to a tekhex file
+dump tekhex value -- Write the value of an expression to a tekhex file
+dump value -- Write the value of an expression to a raw binary file
+dump verilog -- Write target code/data to a verilog hex file
+dump verilog memory -- Write contents of memory to a verilog hex file
+dump verilog value -- Write the value of an expression to a verilog hex file
+
+---
+
 ### 0x01 源码
 
 在调试过程中查看源代码是必须的。list (缩写 l) 支持多种方式查看源码。
@@ -462,3 +488,4 @@ layout asm：显示反汇编窗口
 layout regs：显示源代码/反汇编和CPU寄存器窗口
 
 layout split：显示源代码和反汇编窗口
+
