@@ -17,3 +17,84 @@ Android系统的四大组件分别是**活动（Activity）、服务（Service�
 - **Content Provider**
 
 	内容提供器则为应用程序之间共享数据提供了可能。比如想要读取系统电话簿中的联系人，就需要通过内容提供器来实现
+
+---
+### Intent
+
+Intent是Android中各组件之间交互的一种重要方式，不仅可以指明当前组件想要执行的动作，还可以在不同组件之间传递数据。Intent一般可用于启动活动、启动服务以及发送广播等场景。
+
+Intent大致分为两种：**显式**和**隐式**。
+
+#### 显式
+
+`Intent(Context packageContext, Class<?> cls)`，这个构造函数接收两个参数，第一个Context要求提供一个**启动活动**的上下文，第二个参数Class则是指定想要启动的**目标活动**
+
+Activity类中提供了一个`startActivity()`方法专门用来启动活动。
+
+```java
+Intent intent = new Intent(FirstActivity.this, SecondActivity.class); // FirstActivity.this作为上下文，SecondActivity.class作为目标活动
+startActivity(intent);
+```
+#### 隐式
+
+隐式Intent不会明确指定我们想要启动哪一个活动，而是指定了一些列更为抽象的action和category等信息，然后交由系统去分析这个Intent，并找出合适的活动去启动。
+这种隐式intent不仅可以启动自己程序内的活动，也可以启动其他程序的活动。
+
+```xml
+<!-- AndroidManifest.xml -->
+
+<activity android:name=".SecondActivity">
+	<intent-filter>
+		<action android:name="com.example.activitytest.ACTION_START"/>
+		<category android:name="android.intent.category.DEFAULT"/>
+	</intent-filter>
+</activity>
+```
+
+`<action>`标签中指明了当前活动可以相应`com.example.activitytest.ACTION_START`这个action，而`<category>`标签则包含了一些附加信息，更精确地指明了当前活动能够响应的Intent中还可能带有category。只有`<action>`和`<category>`中的内容同时匹配上Intent中指定的action和category时，这个活动才会响应该Intent。
+
+```java
+...
+@Override
+public void onClick(View v){
+	Intent intent = new Intent("com.example.activitytest.ACTION_START"); // 上面设置的category为default，所以可以不指定
+	// intent.addCategory("com.example.activitytest.xxx");
+	startActivity(intent);
+}
+...
+```
+---
+
+### 生存周期
+
+Activity类中定义了7个回调方法，覆盖了活动生命周期的每一环节：
+
+- onCreate()
+	活动第一次被创建时调用，可以在这里面完成活动的初始化操作。比如加载布局、绑定事件
+- onStart()
+	活动由不可见变为可见时调用
+- onResume()
+	活动准备好与用户进行交互时调用，此时活动一定位于返回栈顶，且处于运行状态
+- onPause()
+	这个方法在系统准备去启动或恢复**另一个**活动时调用
+- onStop()
+	活动完全不可见时调用。与onPause区别在于：如果启动的新活动是一个对话框之类的，则onPause执行、而onStop不执行
+- onDestory()
+	活动被销毁之前调用，之后的活动变为销毁状态
+- onRestart()
+	活动重新被启动
+
+### 活动的启动模式
+
+每个应用程序都有自己的返回栈。活动的启动模式有4种，分别是**standard**、**singleTop**、**singleTask**、**singleInstance**。可以在**AndroidMainfest.xml**中通过**<activity>**标签指定`android:launchMode`属性来选择启动模式
+
+- standard
+	默认的启动模式，每当启动一个新的活动，它就会在返回栈中入栈，并处于栈顶的位置。也就是说，系统不会在乎这个活动是否已经在返回栈中存在，每次启动都会创建该活动的一个新的实例。
+- singleTop
+	启动活动时，如果发现返回栈的栈顶已经是该互动，则认为可直接使用它，不会再创建新的活动实例。不过如果它未在栈顶，这是启动该activity还是会创建新实例的
+- singleTask
+	指定为singleTask，每次启动该活动时系统首先会在返回栈中检查是否存在该活动的实例，如果发现已存在，则直接使用，并把**在这个活动之上的所有活动统统出栈**，如果没有发现就会创建也给新的活动实例
+- singleInstance
+	指定为singleInstance模式的活动会启用一个新的返回栈来管理这个活动（其实singleTask模式指定了不同的taskAffinity也会启动一个新的返回栈）。
+
+
