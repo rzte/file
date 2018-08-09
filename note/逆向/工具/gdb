@@ -2,10 +2,12 @@
 
 设置Inter格式的汇编可在`~/.gdbinit`文件中添加`set disassembly-flavor intel`或者在gdb运行时执行此命令。
 
-调用gdb编译需要在cc后面加 -g参数再加-o；
+查看（设置）当前gdb支持的架构，如果没有支持的则需要从tool-chain中获取(见[stackoverflow](https://stackoverflow.com/questions/24669864/gdb-remote-debug-cant-stop-the-thread# "stackoverflow"))
 
-[root@redhat home]#gdb 调试文件：启动gdb
-
+```c
+(gdb) set architecture
+Requires an argument. Valid arguments are i386, i386:x86-64, i386:x64-32, i8086, i386:intel, i386:x86-64:intel, i386:x64-32:intel, i386:nacl, i386:x86-64:nacl, i386:x64-32:nacl, auto
+```
 ---
 ### 内存相关
 
@@ -488,4 +490,6 @@ layout asm：显示反汇编窗口
 layout regs：显示源代码/反汇编和CPU寄存器窗口
 
 layout split：显示源代码和反汇编窗口
+
+
 
