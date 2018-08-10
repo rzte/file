@@ -98,7 +98,7 @@ Activity类中定义了7个回调方法，覆盖了活动生命周期的每一�
 	指定为singleInstance模式的活动会启用一个新的返回栈来管理这个活动（其实singleTask模式指定了不同的taskAffinity也会启动一个新的返回栈）。
 
 ---
-### 广播
+### 广播（Broadcast）
 
 Android的广播主要分两种：**标准广播**和**有序广播**
 
@@ -118,6 +118,114 @@ Android中内置了很多系统级别的广播，可以在应用程序中通过�
 广播接收器可以自由地对自己感兴趣的广播进行注册，这样有相应的广播发出时，广播接收器就能收到该广播，并进行处理。
 
 广播接收器注册一般有两种方式，在代码中注册（动态注册）、在AndroidManifest.xml中注册（静态注册）
+
+### 跨程序共享数据-内容提供器（Content Porvider）
+
+内容提供器（Content Provider）主要用于在不同的应用程序之间实现数据共享的功能。它提供了一套完整的机制，允许一个程序访问另一个程序中的数据，同时还能保证被访问数据的安全性。目前使用内容提供器是Android实现跨程序共享数据的标准方式
+
+内容提供器可以选择只对哪一部分数据进行共享，从而保证我们程序的隐私数据不会有泄露风险
+
+内容提供器的用法一般有两种，一种是使用现有的内容提供器来读取和操作相应程序中的数据，另一种是创建自己的内容提供器给我们的程序提供外部访问接口。
+
+如果一个应用程序通过内容提供器对其数据提供了外部访问接口，那么任何其他的应用程序就可以对这部分数据进行访问。Android系统中自带的电话簿、短信、媒体库等程序都提供了类似的访问接口。
+
+不同于sqlLite使用的表名参数，内容提供器使用**Uri**参数来代替，这个参数被称为内容URI，给内容提供器中的数据建立了唯一的标识符。它由两部分组成：**authority**和**path**。authority是对不同应用程序做区分的，一般用包名来命名。path是对同一应用程序的不同的表做区分的，通常会加在authority的后面。标准写法如下：
+
+```c
+//schema     authority              path
+content://com.example.app.provider/table1
+content://com.example.app.provider/table2
+```
+
+其调用方式如下：
+
+```java
+Uri uri = Uri.parse("content://com.example.app.provider/table1"); // 构造uri
+
+Cursor cursor = getContentResolver().query( // 查询，返回游标
+	uri,				// uri，对应 from table_name，指定查询某个应用程序下的某张表
+	projection,			// 对应 select column1, column2，指定查询的列名
+	selection,			// 对应 where column=value，指定where的约束条件
+	selectionArgs,		// 为where中的占位符提供具体的值
+	sortOrder			// 对应 order by column1, column2，指定查询结果的排序方式
+);
+
+ContentValues values = new ContentValues();
+values.put("column1", "text");
+values.put("column2", 1);
+getContentResolver().insert(uri, values);	// 插入
+
+ContentValues values = new ContentValues();
+values.put("column1", "");
+getContentResolver().update(uri, values, "column1=? and column2=?", new String[]{"text","1"});	// 更新
+
+getContentResolver().delete(uri, "column2=?", new String[]}{"1"});	// 删除
+```
+
+#### 创建内容提供器
+
+```java
+// ContentProvider类中有6个抽象方法，子类继承它时需要全部重写
+
+public class MyProvider extends ContentProvider{
+	@Overrider
+	public boolean onCreate(){	// 初始化时调用，通常这里会完成对数据库的创建和升级操作
+		return false;
+	}
+	@Overrider
+	public Cursor query(Uri uri, String[] projection, String selection,
+		String[] selectionArgs, String sortOrder){
+		// 查询，
+		// uri来确定查哪张表，
+		// projection确定查哪些列，
+		// selection和selectionArgs用于约束查询哪些行
+		// sortOrder用于对结果排序
+		// 查询的结果存放至Cursor对象中返回
+		return null;
+	}
+	@Overrider
+	public Uri insert(Uri uri, ContentValues values){
+		// 插入
+		// uri确定插入哪张表
+		// 待插入的数据在values中
+		// 返回用于表示这条新纪录的URI
+		return null;
+	}
+	@Overrider
+	public int update(Uri uri, ContentValues values, String selection,
+		String[] selectionArgs){
+		// 更新
+		// uri确定操作哪张表
+		// 新数据在values中
+		// selection和selectionArgs参数用于约束更新哪些行
+		// 返回受影响的行数
+		return 0;
+	}
+	@Overrider
+	public int delete(Uri uri, String selection, String[] selectionArgs){
+		// 删除
+		// uri确定操作哪张表
+		// selection和selectionArgs确定删除哪些行
+		// 返回被删除的行数
+		return 0;
+	}
+	@Overrider
+	public String getType(Uri uri){
+		// 根据传入的内容URI来返回相应的MIME类型
+		return null;
+	}
+}
+```
+
+### 服务（service）
+
+服务（Service）是Android中实现服务后台运行的解决方案，它非常适合去执行哪些不需要和用户交互而且还要求长期运行的任务。
+
+不过服务并不是运行在一个独立的进程中的，而是依赖于创建服务时所在的应用程序进程。但某个应用程序被杀掉时，所有依赖于该进程的服务也会停止运行
+
+另外也不要被服务的后台概念迷惑，实际上服务并不会自动开启线程，并在这里执行具体的任务，否则就有可能出现主线程被阻塞住的情况。
+
+
 
 
 
