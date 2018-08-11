@@ -1,0 +1,100 @@
+### 杂
+
+Android5.0版本会强制开启SELinux（Android上又称SEAndroid）。
+
+### Android系统
+
+#### Android系统的层级
+
+Android整体架构组件主要分为5层，包括应用层（Application）、应用框架层（Application Framework）、核心库与运行环境层（Libraries and Runtime）、Linux内核层（Linux Kernel层）。
+
+- 应用层
+	Android应用程序主要是用户界面（User Interface），通常以java编写，其中还可以包含各种资源文件（放在res目录中）。Java程序及相关资源经过编译后，将生成一个APK（Android Package）。
+
+- 框架层
+	Android的应用程序框架为应用程序层的开发者提供API，它实际上是一个应用程序的框架。上层应用程序是以Java构建的，因此，本层次包含了UI程序中需要的各个控件，如Views（视图组件）包括list、grids、text boxes、buttons、webview等。一个Android应用程序可以利用应用程序框架中的以下几个部分：
+	- Activity（活动）
+	- Broadcast Intent Receiver（广播意图接收者）
+	- Service（服务）
+	- Content Provider（内容提供者）
+
+- 核心库与运行环境层
+	本层次对应嵌入式系统，相当于中间件层次。Android的本层次分成两个部分，一个是各种库，另一个是Android运行环境。本层的内容大多是C++实现的。各种库包括：
+	- C库
+		C语言的标准库，这也是系统中最底层的库，C库通过Linux系统调用来实现
+	- 多媒体框架（MediaFramework）
+		这部分是Android多媒体的核心部分，基于PacketVideo（PV）的OpenCore，从功能上分为两大部分，一部分是音频、视频的回放（PlayBack），另一部分是音频视频的记录（Recorder）
+	- SGL
+		2D图像引擎
+	- SSL
+		即Secure Socket Layer，位于TCP/IP协议与各种应用层协议之间，为数据通信提供安全支持
+	- OpenGL ES 1.0
+		提供了3D的支持
+	- 界面管理工具（Surface Management）
+		提供了管理显示子系统等功能
+	- SQLite
+		一个通用的嵌入式数据库
+	- WebKit
+		网络浏览器的核心
+	- FreeType
+		位图与矢量字体的功能
+
+- Linux内核层
+	Android使用Linux2.6为操作系统，Android对操作系统的使用包括核心和驱动程序两部分，Android的Linux核心为标准的Linux2.6内核，Android更多的是需要一些与移动设备相关的驱动程序：
+	- 显示驱动
+		常基于Linux的帧缓冲驱动
+	- Flash内存驱动
+	- 照相机驱动
+		常基于Linux的v41驱动
+	- 音频驱动
+		常基于ALSA（高级Linux声音体系 Advanced Linux Sound Architecture）驱动
+	- WIFI驱动
+		基于IEEE802.11标准的驱动程序
+	- 键盘驱动
+	- 蓝牙驱动
+		Binder IPC驱动：Android的一个特殊的驱动程序，具有单独的设备节点，提供进程间通信功能
+	- Power Management（能源管理）
+
+#### Android系统的分区
+
+分区是逻辑层存储单元用来区分设备内部的永久性存储结构。不同厂商和平台之间一般有不同的分区布局。但是有几个分区是在所有Android设备中最常见的，及**Boot**、**Data**、**Recovery**和**Cache**分区。通常NAND闪存的设备都具备以下分区布局：
+
+- Boot Loader分区
+	中文名称“系统加载器”，相当于电脑的BIOS，在手机进入系统之前初始化软硬件环境、加载硬件设备，最终让手机启动成功。各大厂商为了保障手机有稳定的运行环境，自家的系统价值，用户的使用安全等都会给BootLoader进行加密。加密后的BootLoader仅能引导给定的固件，第三方固件将不与识别。
+
+- Boot分区
+	存储着Android的Boot镜像，包含Linux kernel（zImage）与initrd等文件
+
+- Splash分区
+	主要是存储系统启动后第一屏显示的内容，一般都是一些公司的Logo或者动画，存储在BootLoader中
+
+- Radio分区
+	基带所在分区，存储着一些与通信质量相关的Linux驱动，如电话、GPS、蓝牙、WIFI驱动等。常见的驱动是可以打包存在于Linux内核的Boot分区的，但为了提升设备的通信质量所有单独开辟了Radio分区
+
+- Recovery分区
+	存储着一个mini型的Android Boot镜像文件，主要作用是来做故障维修和系统恢复（有点类似WinPE）
+
+- System分区
+	存储着Android系统的镜像文件，镜像文件中包含着Android的Framework、Libraries、Binaries和一些预装应用。系统挂载后即/system目录
+
+- User Data分区
+	也称数据分区，它是设备的内部存储分区，比如应用产生的图片、声音等文件。挂载在/data目录下
+
+- Cache分区
+	存储而告终实用文件，如恢复日志和OTA下载的更新包。在应用程序安装在SD卡上时，它可能包含Dalvik缓存文件夹，其中存储着Dalvik虚拟机的缓存文件
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
