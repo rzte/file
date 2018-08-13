@@ -35,7 +35,31 @@ $ ls /data/data/com.xxx/
 cache databases lib ...
 ```
 
+---
+### IDA分析so
+
+**使用IDA load file功能，导入JNI.h解析【JNI函数】**
+
+使IDA导入C/C++头文件，添加头文件中的结构体，使此结构体中的函数替换反汇编中的偏移，使文件的可读性更好
+
+1. 修改ndk包中的jni.h文件（最好是备份一下）
+	- 注释`#include <stdarg.h>`和`#include <stdint.h>`
+	- 将1100行左右的`#define JNIEXPORT  __attribute__ ((visibility ("default")))`改为`#define JNIEXPORT`
+2. 点击IDAPro菜单选项“File -> Load file -> Parse c header file”，选择第一步修改好的jni.h文件
+3. 在IDAPro的 Structures 界面，按 insert 按键，选择 “Add standard structure”，添加`JNIInvokeInterface`和`JNINativeInterface`。
+	![Add standard stucture](/images/Mon-Aug-13-08:46:39-2018_223224.png "Add standard stucture")
+4. 此时按F5查看反汇编发现得到的代码仍然没有转化为函数调用。选中目标函数的第一个参数，右键int，选择“Convert to struct\*”，选择`_JNIEnv`
+	![Convert to struct](/images/Mon-Aug-13-08:53:09-2018_274850.png "Convert to struct")
+5. 此时已发现转化为函数形式
+	![over](/images/Mon-Aug-13-08:56:13-2018_641805.png "over")
+
+
 
 > [非root Android 设备用gdbserver进行native 调试的方法 ](https://www.52pojie.cn/forum.php?mod=viewthread&tid=462161 "非root Android 设备用gdbserver进行native 调试的方法 ")
+
+
+
+
+
 
 
