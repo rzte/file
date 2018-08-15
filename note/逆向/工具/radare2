@@ -21,12 +21,12 @@
 	- 可用于
 		- 破解小程序
 		- 模糊测试
-		- 测试组建
+		- 测试组件
 
 ---
 ### 简要使用
 
-- 使用`a`命令可以分析程序，`af`分析函数，`aaaa`分析全部
+- 使用`a`命令可以分析程序，`af`分析函数，`aaaa`分析全部，`afl`列出所有函数
 - 分析完毕后可通过`vv`命令来粗略浏览一下函数列表
 - `pdf`查看汇编
 - 除了汇编外，还实现了类似IDA`F5`的功能，可以用`pdc`来查看类C语法的代码
@@ -122,6 +122,9 @@
 
 > [radare2](https://www.radare.org)
 > [radare2介绍及简单使用](https://cloud.tencent.com/developer/article/1073910)
+> [先知社区 Radare2使用全解](https://xz.aliyun.com/t/1514)
+
+
 
 
 
