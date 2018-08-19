@@ -35,6 +35,16 @@ $ ls /data/data/com.xxx/
 cache databases lib ...
 ```
 
+#### 分析Trace文件
+
+用DDMS`Start Method Profiling`抓取到的trace文件可用**dmtracedump**转换为图片进行分析其调用关系
+
+```bash
+$ sudo apt install dmtracedump // 安装 dmtracedump
+$ sudo apt install graphviz // graphviz用来绘制DOT语言脚本描述的图形
+$ dmtracedump -g out.png ddms736688747470615083.trace
+```
+
 ---
 ### IDA分析so
 
@@ -56,6 +66,7 @@ cache databases lib ...
 
 
 > [非root Android 设备用gdbserver进行native 调试的方法 ](https://www.52pojie.cn/forum.php?mod=viewthread&tid=462161 "非root Android 设备用gdbserver进行native 调试的方法 ")
+
 
 
 

