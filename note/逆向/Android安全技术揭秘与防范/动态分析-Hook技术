@@ -28,9 +28,62 @@ Hook技术无论对安全软件还是恶意软件都是一项十分关键的技�
 
 就Android的开发来说，Android本身提供了两种开发方式，基于Android SDK的Java语言开发，基于Android NDK的native C/C++语言开发。所以我们在讨论Hook的时候必须在两个层面上来讨论。**对于Native层来说Hook的难点在于理解ELF文件与学习ELF文件。对于Java层来说，Hook就需要了解虚拟机的特性与Java反射的使用。**
 
+#### Hook工作流程
 
+Hook的原理就是改变目标函数的指向，可以将问题细分为两个，一个是**如何注入代码**，另一个是**如何注入动态链接库**
 
+注入代码需要解决两个问题：
 
+- 需要注入的代码要存放到哪里
+
+- 如何注入代码
+
+注入动态链接库也需要解决两个问题：
+
+- 我们不能只在自己的进程载入动态链接库，如何使进程附着上目标进程
+
+- 如何让目标进程调用我们的动态链接库函数
+
+对于**进程的附着**，Android的内核中有一个函数叫**ptrace**，能动态地attach（跟踪一个目标进程）、detach（结束跟踪一个目标进程）、peektext（获取内存字节）、poketext（向内存中写入地址）等，可满足我们的需求。
+
+Android中另一个内核函数**dlopen**，能够以指定模式打开指定的动态链接库文件。对于程序的指向流程，我们可以调用ptrace让PC指向LR堆栈。最后调用，对目标进程调用dlopen则能将我们希望注入的动态库注入到目标进程中。
+
+对于**代码的注入**（Hook API），我们可以使用**mmap**函数分配一段临时的内存来完成代码的存放。对于目标进程中的mmap函数地址的寻找与Hook API函数地址的寻找都需要通过目标进程的虚拟地址空间解析与ELF文件解析来完成。具体算法如下：
+
+- 通过读取`/proc/<PID>/maps`文件找到链接库的基地址
+- 读取动态库，解析ELF文件，找到符号（需要对ELF文件格式的深入理解）
+- 计算目标函数的绝对地址
+
+目标进程函数绝对地址=函数地址+动态库基地址
+
+上面说了这么多，向目标进程注入代码总结后的步骤分为以下几步：
+
+1. 用`ptrace`函数attach上目标进程
+2. 发现装载共享库so函数
+3. 让目标进程的执行流程跳转到注入的代码执行
+4. 使用`ptrace`函数的detach释放目标进程
+
+![Ptrace hook](/images/Wed-Aug-22-07:55:10-2018_837938.png "Ptrace hook")
+
+```c
+int ptrace(
+    int request, // 请求ptrace执行的操作。决定了ptrace会执行什么操作，常见的有跟踪指定的进程（PTRACE_ATTACH）、结束跟踪指定进程（PTRACE_DETACH）等
+    int pid, // 目标进程的pid
+    int addr, // 目标进程的地址值
+    int data // 作用的数据
+);
+```
+
+#### Hook的种类
+
+- Java层 API hook
+	通过Android平台的虚拟机注入与java反射的方式来改变Android虚拟机调用函数的方式（ClassLoader），从而达到Java函数重定向的目的。因为是根据Java的反射机制来实现的，所以会有一些局限性，比如无法反射调用native函数，基本类型的静态常量无法反射修改等。
+- Native层so库hook
+	主要针对NDK开发出来的so库文件的函数重定向。也包括对Android操作系统底层的Linux函数重定向。如使用so文件（ELF格式文件）中的**全局偏移表GOT**或**符号表SYM**进行修改从而达到函数重定向。一般称为**GOT Hook**和**SYM Hook**。针对其中的inline函数（内联函数）的Hook成为**inline Hook**
+- 全局hook
+	在Android中应用程序进程都是由Zygote进程孵化出来的，而Zygote进程是由Init进程启动的。Zygote进程在启动时会创建一个Dalvik虚拟机实例，每当它孵化一个新的应用程序进程时搜会将这个Dalvik虚拟机实例复制到新的应用程序进程里去。从而使每一个应用程序进程都由一个独立的Dalvik虚拟机实例。如果对Zygote进程Hook，则能达到对系统上所有应用程序进程Hook，也就是一个全局Hook
+
+	对应的`app_process`是zygote进程启动一个应用程序的入口，常见的Hook框架Xposed、Cydiasubstrate就是通过替换`app_process`来完成全局Hook的
 
 
 
