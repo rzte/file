@@ -85,6 +85,15 @@ int ptrace(
 
 	对应的`app_process`是zygote进程启动一个应用程序的入口，常见的Hook框架Xposed、Cydiasubstrate就是通过替换`app_process`来完成全局Hook的
 
+#### Hook常用工具
+
+- [Xposed](http://repo.xposed.info/)
+	Hook Java函数
+- [Cydiasubstrate](http://www.cydiasubstrate.com/)
+	Android、IOS，Cydia Substrate是一个代码修改平台，可修改任何主进程的代码，不管是Java还是C/C++（native）
+- [ADBI](https://github.com/crmulliner/adbi)
+- [DDI](https://github.com/crmulliner/ddi)
+	Android动态二进制指令包，命令行工具
 
 
 
