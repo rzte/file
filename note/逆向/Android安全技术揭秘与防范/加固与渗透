@@ -1,0 +1,82 @@
+
+### 防止动态分析
+
+- 检测是否运行IDA PRO
+	常用的调试工具IDA、gdb等会在Android设备中启动一些本地进程，比如android_server、gdbserver，可以通过判断此类进程来判断是否在调试环境下
+- 是否模拟器
+	我们经常使用android模拟器运行应用程序来进行调试，可以在java代码中使用设备的**imei**和**Build.MODE**来判断是否是模拟器
+	```java
+	public static boolean isEmulator(Context context){
+		try{
+			TelephonyManager tm = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
+			String imei = tm.getDeviceId();
+			// imei为空则是模拟器
+			if (imei != null && imei.equals("000000000000000"))
+				return true;
+			//mode为google sdk则是模拟器
+			return (Build.MODEL.equals("sdk")) || (Build.MODEL.equals("google_sdk"));
+		}catch(Exception e){}
+		return false; // 运行到这里说明不是
+	}
+	```
+- 防止进行动态注入
+	Android平台上需要调用`ptrace`函数才能进行so注入，所以只要防止对方使用ptrace函数或保证我们当前的平台进行注入检测即可
+	
+	可以选择对当前进程的so进行排查(`/proc/<PID>/maps`)，存在不认识的so即认为是非法的
+
+### 系统安全措施
+
+#### 启动验证
+
+Android4.4通过使用**device-mapper-verity**（dm-verity）提供了启动验证，它提供透明的设备完整性检查dm-verity帮助阻止那些拥有Root特权的Rootkit。此项机制确保Android设备完全启动的时候呈现在Android用户面前的是一个安全可用的系统。一些拥有Root权限的恶意程序会隐藏自身防止被检测到。
+
+所以dm-verity特性就是让你在浏览到设备模块的同时也能看到是否存在一些文件或程序，并确定它是否符合预期的配置。他使用的是加密哈希树，每一块（通常是4KB）有一个SHA256哈希。由于散列值存储在一个树种，只要顶级的根节点哈希可信即可。要修改块的能力就相当于打破加密散列。
+
+在引导分区的公共密钥必须经过OEM验证，此钥匙是用来验证签名的哈希的，以确认设备的系统分区没有经过篡改。
+
+#### 磁盘加密
+
+从Android3.0开始，为了设备的安全管理方便，引入了磁盘加密策略，此策略强制设备制造商进行加密处理。知道Android4.4版本后，Google推出了一个新的密钥导出函数（scrypt）
+
+#### 屏幕安全
+
+移动设备的屏幕锁（Keyguard）在最初设计时是为了防止误触而设计的，当然也有加密防止他人偷看盗用的功能，与PC上的屏幕锁类似。
+
+- 滑动解锁
+- 密码锁
+- PIN锁
+	PIN（Personal Identification Number）是SIM卡的个人识别密码。PIN锁是使用SIM卡的PIN码来进行屏幕锁，从另一个角度说，它不属于锁屏，因为它只是在未激活SIM的时候对屏幕进行封锁
+- 图形锁
+
+（一些 or 低版本？）android设备会把屏幕锁密码存在`/data/system/gesture.key`中，其加密代码为`LockSettingsService`中的`patternToHash`，发现只是做了一个简单的SHA1加密处理，可以在PC上进行暴力破解，也可以直接删除该文件
+
+**PIN锁**作用比较大，在操作不当时还会锁住SIM卡，多次尝试还可能烧毁SIM卡，所以很多ROM已经去掉了此功能，当PIM码输错3次后，SIM卡会自动上锁，此时只有输入PUK才能解锁。（PUK码在运营商官网上才能查询到）。
+ 
+#### SELinux
+
+Android5.0开始将内核改为SEAndroid（SEAndroid是根据SELinux修改的）。
+
+SELinux主要有四个组成部分：
+- 对象管理器（Object Manager，OM）
+- 访问权限缓存（Access Vector Cache，AVC）
+- 安全服务
+- 安全策略
+
+系统收到要执行操作SELinux的一个对象时（例如，当一个进程试图读取文件），首先看一下在自己的Access Vector Cache是否已经有结果，如果有的话，直接将结果返回给相应的内核子系统就可以了。否则需要到安全服务中进行检查，检查出来的结果在返回给相应的内核子系统时也会保存在自己的Access Vector Cache中，以便下次可以快速地查到结果。
+
+**安全服务**是Linux内核的一部分，而该**安全策略**是从用户空间封装而来的
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
