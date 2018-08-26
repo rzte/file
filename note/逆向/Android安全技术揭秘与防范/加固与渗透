@@ -54,7 +54,7 @@ Android4.4通过使用**device-mapper-verity**（dm-verity）提供了启动验�
  
 #### SELinux
 
-Android5.0开始将内核改为SEAndroid（SEAndroid是根据SELinux修改的）。
+Android5.0开始将内核改为SEAndroid（SEAndroid是根据SELinux修改的）。可通过`getenforce`、`setenforce`来开关SEAndroid
 
 SELinux主要有四个组成部分：
 - 对象管理器（Object Manager，OM）
@@ -64,7 +64,9 @@ SELinux主要有四个组成部分：
 
 系统收到要执行操作SELinux的一个对象时（例如，当一个进程试图读取文件），首先看一下在自己的Access Vector Cache是否已经有结果，如果有的话，直接将结果返回给相应的内核子系统就可以了。否则需要到安全服务中进行检查，检查出来的结果在返回给相应的内核子系统时也会保存在自己的Access Vector Cache中，以便下次可以快速地查到结果。
 
-**安全服务**是Linux内核的一部分，而该**安全策略**是从用户空间封装而来的
+**安全服务**是Linux内核的一部分，而该**安全策略**是从用户空间封装而来的。SEAndroid是一种基于安全策略的强制访问控制允许加载新的访问控制模块（Mandatory Access Control，MAC）安全机制。这种安全策略又是建立在对象的安全上下文的基础上的。这里的对象分两中类型，一种称为主体（Subject）、一种称为目标（Object）。主体通常指进程，而目标通常指要访问的资源（文件、系统属性等）
+
+
 
 
 
