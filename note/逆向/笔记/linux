@@ -9,6 +9,47 @@
 - `nasm`
 	汇编器：`nasm -f elf shell.asm -o shell.o`
 
+### 动态链接库
+
+**LD_PRELOAD**是个环境变量，用于动态库的加载，其优先级最高。可以用它来进行一些hook操作。
+
+```c
+// test.c
+// gcc test.c -o test
+#include <stdio.h>
+#include <stdlib.h>
+
+int main()
+{
+    int i = 0;
+    for (; i < 5; ++i) {
+        char *c = (char*)malloc(sizeof(char)); // 正常会malloc成功
+        if (NULL == c)
+            printf("malloc fails\n");
+        else
+            printf("malloc ok\n");
+    }
+    return 0;
+}
+```
+
+设置自定义的`malloc`
+
+```c
+// preload.c
+// $ gcc preload.c -shared -fpic -o libpreload.so
+#include <stdio.h>
+#include <stdlib.h>
+
+void* malloc(size_t size)
+{
+    printf("%s size: %lu\n", __func__, size);
+    return NULL;
+}
+```
+
+设置`LD_PRELOAD`环境变量：`export LD_PRELOAD=/<path>/libpreload.so`，此时在执行test则malloc返回NULL。
+
 ### linux缓冲区溢出保护机制
 
 - 地址随机化
@@ -41,3 +82,4 @@
 	// 关闭ld链接器不可执行机制的方法是在gcc编译时采用`-z execstack`选项
 	$ gcc -fno-stack-protector -z execstack a.c -o a.out
 	```
+
