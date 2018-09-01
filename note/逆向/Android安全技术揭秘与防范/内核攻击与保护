@@ -1,0 +1,142 @@
+### RootKit
+
+Rootkit是指已获取系统最高权限的情况下，一种用来保持对目标系统最高访问权限并隐藏攻击行为的工具集。Rootkit工具一般由多个程序组成，包含各种辅助攻击的工具。例如，网络嗅探工具，恶意木马程序方便再次进入系统后门，隐藏各种攻击行为的程序，过滤日志的程序来清除攻击行为相关的痕迹
+
+Rootkit根据其运行的层次不同可分为应用级Rootkit和内核级Rootkit。应用级Rootkit的攻击方式是通过修改或替换系统工具来实现的。内核级Rootkit能修改或替换底层的系统内核，比如系统调用接口，系统中断处理程序和文件系统等。可逃过应用层工具的检测。
+
+目前成熟的Linux内核主要由5个子系统组成：
+
+- 进程调度
+- 内存管理
+- 虚拟文件系统
+- 网络
+- 进程通信
+
+其中进程调度是Linux Kernel的核心部分，其他四个子系统都依赖进程调度来实现。
+
+### LKM
+
+Linux可加载的内核模块称为LKM（Loadable Kernel Modules）。Linux内核采用单内核机制，从1.2版本开始引入了**可加载内核模块**（Loadable Kernel Modules，LKM）机制，为内核提供动态可伸缩的内核扩展功能。
+
+定义LKM模块需要用到一些宏来标识入口（module_init）、出口（module_exit）、许可证、模块作者、模块描述等
+
+```c
+#include<linux/module.h>
+#include<linux/init.h>
+
+// 声明许可证为GPL
+MODULE_LICENSE("GPL");
+
+// 声明作者为Module Author
+MODULE_AUTHOR("Module Author");
+
+// 描述
+MODULE_DESCRIPTION("Module Description");
+
+// 主入口进入时回调函数
+static int __init mod_entry_func(void){
+	return 0;
+}
+
+// 退出时的回调函数
+static void __exit mod_exit_func(void){
+	return;
+}
+
+// 声明该模块的入口函数与退出函数
+module_init(mod_entry_func);
+module_exit(mod_exit_func);
+```
+
+LKM是一个特殊的可执行链接格式（Executable and Linkable Format，ELF）对象文件，在2.6版本中，后缀是`.ko`的文件。其静态格式如下所示：
+
+.text | 指令
+-- | --
+`.fixup` | Runtime变更
+`.init.text` | 模块进入指令
+`.exit.text` | 模块退出指令
+`.rodata.str1.1` | 只读字符串
+`.modinfo` | 模块宏信息
+`__versions` | 模块版本信息
+`.data` | 初始化数据
+`.bss` | 未初始化数据
+`other` | ...
+
+LKM的加载分为静态和动态两种方式。前者直接将代码编译进内核，其生命周期与内核相同，后者通过shell命令**insmod**或**modprob**加载，通过**rmmod**或**modprob**卸载，其生命周期从模块加载开始到模块卸载结束。
+
+在LKM模块加载/卸载期间，内核通过维护一组状态变量表示模块状态
+
+- MODULE_STATE_CONING：加载模块时
+- MODULE_STATEJLIVE：模块已加载且可用
+- MODULE_STATE_GOING：卸载模块时
+
+### 系统调用
+
+Linux内核系统调用主要分为**旧应用二进制接口（old application binary interface，OABI）**和**嵌入式应用二进制接口（Embedded application binary interface，EABI）**两种规范。
+
+- OABI是原来的系统调用规范，这种方式中系统调用号保存在**SWI**指令中，调用格式如下：
+	`swi (#sys_call_num | 0x900000)`(0x900000是给magicnum)
+- EABI是一种新的系统调用方式，这种调用方式中系统调用号保存在寄存器r7中，调用格式如下：
+	```
+	mov r7, #sys_call_num
+	swi 0x0
+	```
+
+在linux内核的config配置文件中，可看到两个与系统调用相关的宏定义：**CONFIG_OABI_COMPAT**和**CONFIG_AEABI**，这两个宏可用同时配置也可以单独配置。在Android系统中系统不兼容OABI规范，仅支持EABI系统调用规范。
+
+用户程序使用系统嗲用需要先由软中断进入内核，再由中断处理程序进入系统调用表（sys_call_table），最后通过系统调用表找到系统调用函数。因此，如果对系统调用表进行攻击，改变原来的流程，就能替换原始的系统调用函数。这类攻击一般由两种方式：
+
+- 系统调用表重定向
+	将系统调用表地址重定向到内核中一个新的自定义系统调用表地址。自定义的系统调用表中包含由攻击者定义的系统调用函数指针，其中也会保留某些原始系统调用中的函数地址
+
+	![重定向系统调用逻辑图](/images/Sat-Sep--1-04:35:55-2018_220895.png "重定向系统调用逻辑图")
+- 系统调用函数指针重定向
+	这种方式把系统调用表中的一些系统调用函数地址重定向到包含恶意指令的函数地址。
+
+	![重定向函数指针示意图](/images/Sat-Sep--1-04:40:43-2018_833134.png "重定向函数指针示意图")
+
+为了安全起见，Linux内核从2.4.18就不再导出系统调用表（sys_call_table)，但是我们还是能在系统的编译目录下找到`boot/System.map`，不同系统可能位置不一样。
+
+### 隐藏模块
+
+#### 0x01 屏蔽lsmod
+
+**lsmod**可以打印出所有加载的LKM。所以首先需要屏蔽此函数。lsmod是通过`/proc/modules`来获取当前模块信息的。而`/proc/modules`中当前模块信息是内核利用`struct modules`结构体的表头便利内核模块链表，从所有模块的struct module结构体中获取模块的相关信息得到的。结构体`struct module`在内核中代表一个内核模块，通过**insmod**把自定义LKM插入内核时，模块便会与一个`struct module`结构体相关联，称为内核的一部分，所有内核模块都会链接在一个全局变量`struct module* modules`中。添加的新模块都会加入到这个链表的头部。所有可以在此链表中删除自身模块即可
+
+```c
+#include<linux/module.h>
+#include<linux/init.h>
+#include<linux/kernel.h>
+#include<linux/string.h>
+#include<linux/moduleparam.h>
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("xx");
+MODULE_DESCRIPTION("Test hide LKM");
+
+static int remove_init(void){
+	list_del_init(&__this_module.list); // 从链表中删除自身
+	printk("Can't find module HIDE");
+	return 0;
+}
+
+static void remove_exit(void){
+	printk("hide module exit\n");
+}
+module_init(remove_init);
+module_exit(remove_exit);
+```
+
+#### 0x02 文件系统隐藏
+
+在文件系统中隐藏无非就是隐藏一些常用的文件列表命令`ls`等。可通过**strace**来看下ls命令执行后的具体调用
+
+#### 0x03 网络连接的隐藏
+
+建立网络连接后，会将每个网络连接的信息保存在`/proc/net`目录下的tcp和udp两个文件中。用户可通过`netstat`来查看网络连接的状态，该命令就是根据这两个文件中读取的信息来查询相关信息的。同样通过使用`strace netstat`来分析netstat的执行过程，对相关系统调用进行拦截即可。
+
+
+
+
+
+
