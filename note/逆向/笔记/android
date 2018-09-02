@@ -35,6 +35,18 @@ $ ls /data/data/com.xxx/
 cache databases lib ...
 ```
 
+#### 调试模式启动
+
+```c
+adb shell am start -D -n com.exammple.vv/.MainActivity
+```
+
+#### 查看顶部的activity
+
+```c
+adb shell dumpsys activity top
+```
+
 #### 分析Trace文件
 
 用DDMS`Start Method Profiling`抓取到的trace文件可用**dmtracedump**转换为图片进行分析其调用关系
@@ -99,6 +111,8 @@ sudo...
 ```
 
 > [非root Android 设备用gdbserver进行native 调试的方法 ](https://www.52pojie.cn/forum.php?mod=viewthread&tid=462161 "非root Android 设备用gdbserver进行native 调试的方法 ")
+
+
 
 
 
