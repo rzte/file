@@ -48,7 +48,34 @@ Listening on port #23946...
 	![ok](/images/Tue-Aug-21-08:44:50-2018_498018.png)
 
 
-### 0x03 gdb
+### 0x03 使用ida在程序开始位置断下来调试so
+
+- ida加载so，下好断点
+
+- 启动android_server并端口转发
+	```
+	adb shell /data/local/tmp/android_server
+	adb forward tcp:23946 tcp:23946
+	```
+
+- 调试启动app并设置转发
+	![调试启动app](/images/Tue-Sep--4-07:27:05-2018_500449.png "调试启动app")
+	```c
+	C:\Users\15748>adb shell ps | findstr vv
+	u0_a53    1429  53    684160 17280 ffffffff b6f64798 t com.demo.rz.vv
+
+	C:\Users\15748>adb forward tcp:7788 jdwp:1429
+	```
+
+- 设置ida的debugger、`Process Option`、`Debugger Option`，并附加刚才启动的进程
+	![debugger option](/images/Tue-Sep--4-07:40:10-2018_864476.png "debugger option") ![debugger option](/images/Tue-Sep--4-07:43:13-2018_412617.png "debugger option")
+
+- jdb附加(需要debugable)
+	```
+	jdb -connect com.sun.jdi.SocketAttach:port=7878,hostname=127.0.0.1
+	```
+
+### 0x04 gdb
 
 - **将ndk中自带的 gdbserver push 到/data/local/tmp/下（选对cpu架构）**
 - **选定进程，用gdbserver附加此进程（root）**
@@ -81,15 +108,17 @@ Listening on port #23946...
 
 - **当然，也可以用ida来连接gdbserver**，不过感觉不太好用
 
-### 0x04 jeb调试smali
+### 0x05 jeb调试smali
 
 - 连接adb，保证`adb devices`可以显示处目标设备。
 - 把目标app拖入jeb中，点击Debugger->start，会让选择进程，选中目标进程即可开始调试。
 - `ctrl+b`下断点
 
 ---
-### 0x05 参考
+### 0x06 参考
 
 > [Android逆向学习汇总](http://www.tasfa.cn/index.php/2017/08/09/android_conclusion/#more-593)
 > [Android安全技术揭秘与防范](https://book.douban.com/subject/26641765/)
 > [教我兄弟学Android逆向](https://www.52pojie.cn/thread-742703-1-1.html)
+
+
