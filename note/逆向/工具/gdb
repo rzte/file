@@ -1,3 +1,15 @@
+## gdb-peda
+
+[https://github.com/longld/peda](https://github.com/longld/peda)
+
+#### Installation
+
+```bash
+git clone https://github.com/longld/peda.git ~/peda
+echo "source ~/peda/peda.py" >> ~/.gdbinit
+echo "DONE! debug your program with gdb and enjoy"
+```
+
 ## GDB 常用调试命令
 
 设置Inter格式的汇编可在`~/.gdbinit`文件中添加`set disassembly-flavor intel`或者在gdb运行时执行此命令。
@@ -490,6 +502,7 @@ layout asm：显示反汇编窗口
 layout regs：显示源代码/反汇编和CPU寄存器窗口
 
 layout split：显示源代码和反汇编窗口
+
 
 
 
