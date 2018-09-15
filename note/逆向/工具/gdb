@@ -20,6 +20,33 @@ echo "DONE! debug your program with gdb and enjoy"
 (gdb) set architecture
 Requires an argument. Valid arguments are i386, i386:x86-64, i386:x64-32, i8086, i386:intel, i386:x86-64:intel, i386:x64-32:intel, i386:nacl, i386:x86-64:nacl, i386:x64-32:nacl, auto
 ```
+
+### 信号
+
+- 捕获信号（handle）
+	```bash
+	gdb-peda$ handle SIGALRM nostop nopass print # 闹钟信号（alarm），不暂停程序、打印、不让程序接收到
+	Signal        Stop	Print	Pass to program	Description
+	SIGALRM       No	Yes	No		Alarm clock
+	```
+- 发送信号（signal）
+	```bash
+	gdb-peda$ signal SIGALRM # 向程序发送闹钟信号
+	Continuing with signal SIGALRM.
+
+	Program terminated with signal SIGALRM, Alarm clock.
+	The program no longer exists.
+	Warning: not running or target is remote
+	```
+- 查看信号（info signals）
+	```bash
+	gdb-peda$ info signals
+	Signal        Stop	Print	Pass to program	Description
+
+	SIGHUP        Yes	Yes	Yes		Hangup
+	SIGINT        Yes	Yes	No		Interrupt
+	...
+	```
 ---
 ### 内存相关
 
@@ -502,6 +529,7 @@ layout asm：显示反汇编窗口
 layout regs：显示源代码/反汇编和CPU寄存器窗口
 
 layout split：显示源代码和反汇编窗口
+
 
 
 
