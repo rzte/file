@@ -9,6 +9,29 @@
 - `nasm`
 	汇编器：`nasm -f elf shell.asm -o shell.o`
 
+### 参数传递规则
+
+不同于32位的参数传递，64位一般的函数调用规则如下：
+
+```c
+func(1, 2, 3, 4, 5, 6, 7, 8); // 8个参数
+
+// 参数传递如下：
+|           0x00001195      6a08           push 8
+|           0x00001197      6a07           push 7
+|           0x00001199      41b906000000   mov r9d, 6
+|           0x0000119f      41b805000000   mov r8d, 5
+|           0x000011a5      b904000000     mov ecx, 4
+|           0x000011aa      ba03000000     mov edx, 3
+|           0x000011af      be02000000     mov esi, 2
+|           0x000011b4      bf01000000     mov edi, 1
+|           0x000011b9      e877ffffff     call sym.fun
+```
+
+可以看到仍然是从右向左依次赋值的。前6个参数赋值给寄存器，之后的参数同32位一样入栈
+
+相当于`func($rdi, $rsi, $rdx, $rcx, $r8, $r9, ...)`
+
 ### 动态链接库
 
 **LD_PRELOAD**是个环境变量，用于动态库的加载，其优先级最高。可以用它来进行一些hook操作。
@@ -82,4 +105,6 @@ void* malloc(size_t size)
 	// 关闭ld链接器不可执行机制的方法是在gcc编译时采用`-z execstack`选项
 	$ gcc -fno-stack-protector -z execstack a.c -o a.out
 	```
+
+
 
