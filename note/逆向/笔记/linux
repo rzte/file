@@ -106,5 +106,13 @@ void* malloc(size_t size)
 	$ gcc -fno-stack-protector -z execstack a.c -o a.out
 	```
 
+### KASLR
+
+ASLR（用户空间地址随机化）
+
+KSLR（内核地址随机化）
+
+
+
 
 
