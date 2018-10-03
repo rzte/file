@@ -1,0 +1,113 @@
+漏洞映射旨在识别和分析目标环境中的决定性安全缺陷，有时也成为脆弱性评估。
+
+测试人员在完成了信息收集、目标识别、服务枚举后就可以着手分析目标设施中可能存在的安全漏洞。
+
+### openvas
+
+openvas是一款封装了多种安全工具和安全服务的软件，是一个强大的漏洞管理平台，它采用了客户端/服务端的框架。
+核心组件和功能如下：
+- openvas scanner（扫描器）
+- openvas client（客户端）
+- openvas manager（管理程序）
+- greenbone security assistant（安全助手）
+
+openvas集成的工具清单如下：
+
+安全工具 | 简介
+---|---
+amap | 应用层协议的检测工具
+IKE-scan | IPSec VPN的扫描识别和测试工具
+LdapSearch | 从LDAP目录中获取信息的工具
+Nikto   | Web服务器评估工具
+Nmap    | 端口扫描程序
+Ovaldi  | 开放式漏洞与评估语言转换程序
+pnscan  | 端口扫描程序
+Portbunny   | 端口扫描程序
+Seccubus    | openvas常规扫描的自动化工具
+SLAD        | 多款本地安全审计工具
+SNMPwalk    | SNMP数据采集程序
+Strobe      | 端口扫描程序
+w3af        | web程序工具与审计框架
+
+### Cisco分析工具
+
+Cisco品牌的硬件由路由器、交换机、安全设备、无线产品、软件产品如IOS、NX-OS、安全设备管理器、CiscoWorks、统一通信管理器等。
+
+- **Cisco AUditing Tool**
+    Cisco Auditing Tool简称CAT，属于小型的安全审计工具。可检测出Cisco路由器上的常见漏洞，能发现注入默认密码、默认SNMP字符串和老版本IOS上存在的bug问题。
+```
+CAT --help
+```
+- **Cisco Global Exploiter** （CGE）  
+CGE是小型的Perl脚本程序，可测试Cisco设备的14中独立的漏洞。请注意只有特定类型的Cisco设备才会存在这些漏洞，所以这个程序不能完全满足Cisco安全评估的全部需要。
+
+### Fuzz分析工具
+通常认为，模糊测试由6个步骤组成，这些步骤分别是识别目标、识别输入、生成模糊测试数据、执行模糊数据、监控输出和鉴别问题的可利用性（是否是exploit）。
+
+- **Bruteforce Exploit Detector**（BED）
+  BED是纯文本协议的模糊测试工具，用于检测软件常见漏洞（**缓冲区溢出、格式化字符串、整数溢出、DOS条件等**）。它可根据**指定的协议**，自动发送含有问题字符串的命令组合，以测试目标的处理方式。它目前支持的协议由：ftp、smtp、pop、http、irc、imap、pjl、lpd、finger、sock4、sock5。
+```
+bed -s ftp  显示ftp插件的说明
+
+bed -s ftp -u ftpuser -v ftpuser -t 192.168.31.182 -p 21 -o 3
+```
+
+- **JBroFuzz**
+    JBroFuzz是对web应用程序进行模糊测试的著名平台。它可模拟HTTP协议和HTTPS协议的web请求。获悉要测试的域名和测试的URL部分之后，审计人员可自己手工构造测试的请求，也可使用程序预定义的payload数据库生成基于已知漏洞的恶意请求，再把这些请求发送到目标服务器进行模糊测试。
+    JbroFuzz的数据库能帮助审计人员进行XSS、SQL注入、缓冲区溢出、格式字符串错误等问题的自动化测试。
+
+### SMB分析工具
+Server Message Block（SMB）是应用层协议，通常用于文件和打印机共享服务。此外，他还可将网络中不同节点的串口服务和其他通信协议共享。SMB又称为CIFS。  
+**ImpacketSamrdump**是获取主机敏感信息的工具。它通过DCE/RPC服务调用SAM的远程接口，继而获取信息。它可列举同一局域网内的目标主机上的所有系统共享、用户账户和其他信息。  
+```
+cd /usr/share/doc/python-impacket-doc/examples/samrdump.py
+python samrdump.py
+```
+
+### SNMP分析工具
+SNMP（Simple Network Management Protocol）是一个运行于UDP协议161端口的应用层协议。主要用于网络设备运行状态的监控，以关注需要管理员干预的事，即使了解注入电源断电、网络不可达等网络运行情况。  
+采用了SNMP管理技术的网络结构，通常由网络设备、管理端和代理段组成。
+
+**SNMP Walk**是一个功能强大的SNMP信息采集工具。可用依据设备类型提取所有配置数据。
+
+---
+
+### Web程序分析工具
+
+#### 数据库评估工具
+
+- **DBPwAudit**
+    是一款审计Oracle、Mysql、MS-SQL和IBM DB2服务器密码安全性的工具，它是java程序。
+- **SQLMap**
+    SQL注入审计工具，支持的数据库包括MS-SQL、MySql、Oracle和PostgresSQL。略微处理后，它也能识别注入DB2、Informix、Sybase、Interbase和MS Access之类的数据库系统。
+    SQLMap采用4中独特的SQL注入技术，分别是**SQL盲注、联合查询SQL注入、累加式注入和基于事件的SQL盲注**。可对数据库进行指纹识别、服务枚举、数据提取，并可访问目标主机的文件系统，在获取完全操作权时甚至可执行任意命令。
+```
+sqlmap -u 'http://192.168.72.1:8088/dvwa/vulnerabilities/sqli/?id=123&Submit=Submit' -p id -f -b --current-user --current-db --dbs --users --cookie "security=low; JSESSIONID=49F8F9547755AEAE8AE4D4E706D63D22; PHPSESSID=saecd4o0bs49l15mvcs4mvhoe0; BEEFHOOK=3OPcq4N4COqf2F7EJPkUp9CzWhvJpX32omNyEKTaaDc0yqw9iittAbUknHszfEprUkjA9EtANyX84ohU"
+
+-p 指定一个特定的参数扫描
+-f 指纹识别
+-b Retrieve DBMS banner
+```
+- **Sql Ninja**
+Sql Ninja是一款SQL注入的审计工具，专门用于评估后台数据库采用MS-SQL server的web应用程序。它可通过sql注入漏洞获取远程数据库服务器的shel运行权限，而不是提取数据库数据的工具。  
+sql ninja的主要功能有：对服务器及进行指纹识别、暴力破解密码、提升权限、上传后门、直接调用shell、反连方法连接shell（绕过防火墙）、反射shell、DNS隧道、单命令执行等。它还可以与metasploit进行集成。
+
+#### Web应用程序评估工具
+包括**缓冲区溢出、跨站脚本（XSS）、SQL注入、SSI注入、XML注入、应用程序配置错误、功能滥用、会话预测、信息泄露**以及其他类型的漏洞。
+
+- **Burp Suite**
+
+- **Nikto2**
+    Nikto2是一款基础的web服务器安全扫描工具。它可用扫描、检测由下述问题引起的安全漏洞：**服务器的配置不当问题、默认和不安全的文件、过旧的服务端应用程序**。Nikto2程序完全是LibWhisker2的再开发版。因此它支持**跨平台部署、SSL、常见的主机身份验证方式（NTLM/Basic）多代理，并采用了多种IDS规避技术。它还支持子域名枚举、应用程序安全检查（XSS、SQL注入等），并能够使用字典的攻击方法猜测认证信息**  
+- **Paros Proxy**
+    Paros Proxy能以爬虫的方法分析整个网站的网址，并执行各种漏洞测试。同时审计人员还可利用它的代理服务器功能拦截本机浏览器和目标应用程序服务器之间的web流量（支持http/https协议）
+- **W3AF**
+    <a href="http://w3af.sourceforge.net/documentation/user/w3afUsersGuide.pdf">w3af</a>是一款功能丰富的Web应用程序攻击和审计框架，它主要用于探测和利用web漏洞。  
+    整个框架的设计理念遵循下述三个主要的操作步骤：**识别、审计、攻击**
+- **WafW00f**
+    wafw00f是检测web应用程序防火墙（**WAF**）的python脚本程序。
+```
+wafw00f http://www.example.net/             # 分析目标网站是否使用waf系统
+```
+- **WebScarab**
+    <a href="https://www.owasp.org/index.php/Category:OWASP_WebScarab_Project">webscarab</a>是一款功能强大的web应用程序安全评估工具。主要模式是**拦截代理**。webscarab集成了诸多工具，包括fuzzer、session ID analysis、spider、web services analyzer、xss和crlf漏洞扫描器和transcoder等程序。
