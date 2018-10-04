@@ -77,7 +77,7 @@ SNMP（Simple Network Management Protocol）是一个运行于UDP协议161端口
 #### 数据库评估工具
 
 - **DBPwAudit**
-    是一款审计Oracle、Mysql、MS-SQL和IBM DB2服务器密码安全性的工具，它是java程序。
+    是一款审计Oracle、Mysql、MS-SQL和IBM DB2服务器密码安全性的工具，它是java程序。(/usr/share/dbpwaudit/)
 - **SQLMap**
     SQL注入审计工具，支持的数据库包括MS-SQL、MySql、Oracle和PostgresSQL。略微处理后，它也能识别注入DB2、Informix、Sybase、Interbase和MS Access之类的数据库系统。
     SQLMap采用4中独特的SQL注入技术，分别是**SQL盲注、联合查询SQL注入、累加式注入和基于事件的SQL盲注**。可对数据库进行指纹识别、服务枚举、数据提取，并可访问目标主机的文件系统，在获取完全操作权时甚至可执行任意命令。
@@ -88,9 +88,14 @@ sqlmap -u 'http://192.168.72.1:8088/dvwa/vulnerabilities/sqli/?id=123&Submit=Sub
 -f 指纹识别
 -b Retrieve DBMS banner
 ```
-- **Sql Ninja**
-Sql Ninja是一款SQL注入的审计工具，专门用于评估后台数据库采用MS-SQL server的web应用程序。它可通过sql注入漏洞获取远程数据库服务器的shel运行权限，而不是提取数据库数据的工具。  
-sql ninja的主要功能有：对服务器及进行指纹识别、暴力破解密码、提升权限、上传后门、直接调用shell、反连方法连接shell（绕过防火墙）、反射shell、DNS隧道、单命令执行等。它还可以与metasploit进行集成。
+- (**Sql Ninja**)[file:///usr/share/doc/sqlninja/sqlninja-howto.html]
+Sql Ninja是一款SQL注入的审计工具，专门用于评估后台数据库采用**MS-SQL** server的web应用程序。它可通过sql注入漏洞获取远程数据库服务器的shel运行权限，而不是提取数据库数据的工具。
+sql ninja的主要功能有：**对服务器及进行指纹识别、暴力破解密码、提升权限、上传后门、直接调用shell、反连方法连接shell（绕过防火墙）、反射shell、DNS隧道、单命令执行**等。它还可以**与metasploit进行集成**。
+	```
+	# cd /usr/share/doc/sqlnija/
+	# gzip -d sqlnija.conf.example.gz
+	# cp sqlnija.conf.example /usr/share/sqlnija/sqlnija.conf (配置文件)
+	```
 
 #### Web应用程序评估工具
 包括**缓冲区溢出、跨站脚本（XSS）、SQL注入、SSI注入、XML注入、应用程序配置错误、功能滥用、会话预测、信息泄露**以及其他类型的漏洞。

@@ -1,0 +1,17 @@
+### Social Engineering Toolkit(SET)
+
+SET是一款先进的多功能的社会工程学计算机辅助工具集。SET可实现多种非常有效且实用的攻击方法。其中人们常用的方法有：**用恶意附件对目标进行E-mail钓鱼攻击、Java applet攻击、基于浏览器的漏洞攻击、收集网站认证信息、建立感染的便携媒体（USB/DVD/CD）、邮件群发攻击及其他类似攻击**。它是实现这些攻击方法的**合成攻击平台**  
+```
+root@kali:~# setoolkit
+
+ Select from the menu:
+
+   1) Social-Engineering Attacks
+   2) Penetration Testing (Fast-Track)
+   3) Third Party Modules
+   4) Update the Social-Engineer Toolkit
+   5) Update SET configuration
+   6) Help, Credits, and About
+
+  99) Exit the Social-Engineer Toolkit
+```

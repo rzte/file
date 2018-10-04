@@ -1,0 +1,145 @@
+### 提升权限分为两类：
+- **纵向提权**
+    如果低权限角色（的用户）能够获高权限角色的权限，则这种提权就可称为纵向提权。
+- **横向提权**
+    如果获得了同级别角色的权限，这种提权就属于横向提权。
+
+越权提升权限的攻击矢量，大体可分为以下几种：
+- **利用本地漏洞**
+- **利用目标系统上的配置缺陷**
+- **利用目标系统的弱密码**
+- **嗅探网络流量以捕获他人的用户名和密码**
+- **伪造网络数据包**
+---
+
+### 利用本地漏洞
+...
+
+### 密码攻击
+
+[sourceforge](http://sourceforge.net/)
+
+#### 离线攻击工具
+
+- **hash-identifier**
+    可查看hash值可能使用的hash算法，接下来就可以用**hashcat**程序破解这个哈希值的信息了
+- **hashcat**
+    hashcat是一款免费的多线程密码破解工具。目前可支持80种算法的哈希值。hashcat程序完全依赖cpu运算，它比利用gpu运算的密码破解程序要慢一些。
+- **rainbowcrack**
+    彩虹表
+- **samdump2**
+    windows 2K/NT/XP/Vista系统的账号密码会以hash的形式存储于SAM的文件型数据库中。samdunmp2可破解这种哈希。无需**syskey（System Key）**，samdump2程序就可以破解密码的哈希值。syskey是由windows NT Service Pack3引入的概念，它是保护windows SAM数据库的加密秘钥。
+```
+获取windows密码哈希值的方法有很多
+1、 直接使用samdump2程序分析windows系统和sam文件，有关信息在c:\%windows%\system32\config目录下，不过在windows运行期间，该目录被锁定。所以可以通过linux启动计算机系统，然后挂载windows系统磁盘分区。吧windows的sam文件复制到kali主机上
+2、 使用pwdump程序或同类型的相关工具把windows账户的密码哈希值导出来
+3、 用meterprete的hashdump命令吧密码导出来
+```
+- [**john**](https://www.openwall.com/john/)
+    john the ripper是汇款破解密码哈希的工具
+- **johnny**
+    john的图形化版本
+- [**Ophcrack**](http://www.objectif-securite.ch)
+    Ophcrack是一款基于彩虹表的破解工具。它可破解LM和NTLM型的windows的密码哈希。
+- **Crunch**
+    crunch是一款给予用户标准来**创建密码字典**的工具。
+```
+例如：创建由字母组成的密码长度在5个字符以内的密码字典，并指定密码字典的文件名为5chars.txt：
+# crunch 1 5 -o 5chars.txt
+```
+#### 在线破解工具
+本节要介绍的工具可分以下几类：
+- 制作密码字典
+- 搜索密码的hash值
+- 在线密码破解工具
+
+虽然在线工具速度不快，也可能会触发账户锁定机制，但对于SSH、Telnet和FTP这类服务来说，在线攻击是密码破解的唯一方式。
+
+- **CeWL**
+    Custom Word List是一款以爬虫模式在指定URL上收集单词的工具。把他收集到的单侧纳入密码词典，可提高密码破解工具（例如john）的命中率。
+```
+# cewl -w target.txt http://www.target.com        # 从目标网站上收集单词
+```
+- **Hydra**
+    Hydra是一款猜测病破解用户名和密码的工具。它支持多种网络协议，可破解HTTP、FTP、POP3和SMB等协议的密码。它会使用字典并穷举网络服务的用户名和密码。默认情况下会向目标主机发起16个并行连接同时进行多组测试。
+```
+# hydra -P password.list 192.168.56.101 vnc       # 破解192.168.56.101的vnc服务密码，密码字典为password.list
+# hydra -l root -P password.txt ssh://192.168.1.100:22 # 破解ssh密码
+```
+- **Medusa**
+    Medusa是另外一款在线破解网络服务密码的程序，它具有速度快、并发性能强和模板化的特点。它能通过相应的模板破解CVS、FTP、HTTP、IMAP、MS-SQL、MySql、NCP（NetWare）、VNC等协议。另有一个通用处理模板。
+
+	它与hydra的区别可参见：http://foofus.net/goons/jmk/medusa/medusa-compare.html
+
+```
+有关Medusa和Hydra的具体区别，请参见http://foofus.net/goons/jmk/medusa/medusa-compare.html
+```
+#### 网络欺骗
+网络欺骗（network spoofing）泛指修改网络数据的各种手段。例如，伪造MAC地址、伪造IP地址等的数据都属于网络欺骗的范畴。网络欺骗旨在于获取网络上两个会话主机的通信数据。
+- **DNSChef**
+    DNSChef是一款DNS代理工具。它可代替DNS服务器对被测主机进行DNS回复，把域名解析未攻击者管控的IP从而让攻击者的主机扮演真正的服务器角色。DNSChef的这种功能可以用来分析甚至控制客户主机的网络流量。
+
+    在没有权限更改被测主机DNS服务器设置的情况下，您就需要使用其他手段（例如ARP欺骗并搭设一个伪DHCP服务器等）劫持被测主机的DNS请求。
+- **arpspoof**
+    arpspoof是一款在交换网络中辅助进行网络监听的实用工具。使用交换机进行数据交换的网络环境里很难记性网络监听，但arpspoof可以辅助完成我们完成这项任务。
+
+```
+    常规情况下，主机A和主机B（网关）进行通信的时候，主机A会广播ARP请求以获取主机B的MAC地址。此后主机B会回应这个ARP请求，在ARP Reply数据包里声明自己的MAC地址；与此同时，主机B也会将ARP广播中主机A的MAC地址记录下来。此后主机A和主机B才能通信。
+
+    如果攻击者C想要监听主机A和主机B之间的网络流量，则可以向主机A发送ARP回复，告诉它主机B使用的是主机C的MAC地址(33.33.33.33.33.33)，而后它还要通知主机B，主机A的MAC地址是(33.33.33.33.33.33)。
+
+    在ARP欺骗生效后，主机A和主机B之间所有的网络数据包都会通过主机C转发。
+```
+```
+在使用arpspoof之前，需要先启用IP转发功能：
+# echo 1 > /proc/sys/net/ipv4/ip_forward
+
+```
+- **Ettercap**
+    Ettercap是一款在lAN中进行中间人攻击的工具集。它通过ARP攻击充当网络通信的中间人。一旦ARP协议的攻击奏效，它就能够：
+    - 修改数据连接
+    - 获取FTP、HTTP、POP和SSH1等协议的密码
+    - 通过伪造SSL证书的手段劫持被测主机的HTTPS会话
+```
+    ARP地址解析协议用来把IP地址解析为物理地址（MAC地址）。当某个网络设备需要与其他网络资源通信时，它会通过ARP广播查询目标设备的MAC地址，目标设备也会通过ARP协议的数据包回复自己的MAC地址。此后通信双方都会将IP和MAC的对应信息保存到自己的ARP缓存中，以节省以后通信的查询时间。
+
+    在某台主机要进行通信时，它会首先查询对方IP地址的MAC地址。此时攻击人员可将自己的主机回复给查询MAC地址的主机，进行中间人攻击。这种攻击叫做ARP毒化（污染）攻击和ARP欺骗。只有当攻击主机和被测主机处于同一网段时，这种攻击才会生效。
+```
+
+```
+若要以文本形式启动Ettercap程序，可在终端中使用如下指令：
+# ettercap -T
+
+以仿图形模式启动它可在终端中使用：
+# ettercap -C
+
+要进入Ettercap的图形模式，可在终端中使用：
+# ettercap -G
+```
+
+#### 网络嗅探器
+网络嗅探器是监视网络数据的软件程序或硬件设备。
+
+- **Dsniff**
+    Dsniff能够在网络中捕获密码。可支持FTP、Telnet、SMTP、HTTP、POP、PostgreSql等协议。
+```
+# dsniff -h
+# dsniff -i eth0 -m     # 其中，选项-i eth0将使Dsniff程序坚挺eth0网卡。而选项-m则用于启用程序的自动协议检测功能。
+```
+- **tcpdump**
+
+```
+# tcpdump -i eth0 -s 96     # 这个命令将会监听eth0网卡，捕获大小为96字节(-s 96)的数据包
+
+现在尝试嗅探从IP地址10.0.2.15到10.0.2.100的ICMP封包，这里设置嗅探eth0接口（-i eth0），不需要把地址转换成主机名（-n），不需要打印时间戳（-t），用十六进制格式和ASCII格式打印封包头和数据（-X）。
+# tcpdump -n -t -X -i eth0 -s 64 icmp and src 10.0.2.15 and dst 10.0.2.100
+```
+- **wireshark**
+    wireshark的特征有：
+    - 能分析1000多种网络协议
+    - 能实时捕获网络数据包，并能对数据包进行离线分析
+    - 它具有业内功能最强大的数据包整理（显示过滤）功能
+    - 它的GUI图形界面程序和命令行程序TShark都可以显示数据包
+    - 支持（读写）多种文件格式的数据包文件。兼容tcpdump（libpcap）、Network General Sniffer、Cisco Secure IDS iplog、Microsoft Network Monitor等程序的文件格式
+    - 可以从IEEE 802.11、蓝牙、以太网设备实时读取数据
+    - 可将结果导出为XML、Postscript、CSV和文本格式的文件

