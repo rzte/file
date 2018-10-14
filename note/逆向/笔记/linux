@@ -106,12 +106,34 @@ void* malloc(size_t size)
 	$ gcc -fno-stack-protector -z execstack a.c -o a.out
 	```
 
-### KASLR
+### Linux保护机制
+
+#### KASLR
 
 ASLR（用户空间地址随机化）
 
 KSLR（内核地址随机化）
 
+#### RELRO
+
+RELRO是重定位表只读（Reloction Read Only）的缩写，重定位表即经常提到的got表和plt表。一般来说got表中的数据会在使用时才进行修改，所以got表是可写的，但是这样给字符串漏洞带来一个非常方便的利用方式，即修改got表。比如把got表中的puts改为system的地址，这样在执行put时实际执行的是sytem。而`Full RELRO`意味着该程序的重定位表项全部只读，无论是.got还是.got.plt都无法修改。这样对于一些劫持got表的行为都会被阻止。
+
+### 特殊变量
+
+#### IFS
+
+IFS用来定义分隔符，比如在用`for`遍历时，想要以行为单位，需要定义IFS为换行符
+
+```
+IFS='\n' 		# 以字符`\n`为分隔符
+IFS=$"\n"		# 与上相同
+IFS="\n"		# 与上相同？
+IFS=$'\n'		# 这次是真正的换行符
+```
+
+### Linux下32位程序执行流程
+
+[![32位ELF执行流程](http://dbp-consulting.com/tutorials/debugging/images/callgraph.png "32位ELF执行流程")](http://dbp-consulting.com/tutorials/debugging/linuxProgramStartup.html "32位ELF执行流程")
 
 
 
