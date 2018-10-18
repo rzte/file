@@ -26,10 +26,28 @@ rz$ frida -U -l example.js com.example.rz.myapplication
 ...
 ```
 
+#### 需要重载的函数：
+
+```javascript
+/*
+	// java代码，重载了crypto
+	public void crypto(String arg1, String arg2);
+	public void crypto(int arg1);
+*/
+
+Java.perform(function(){
+		var Activity = Java.use("com.test.NetCrypto");
+		Activity.crypt.overload("java.lang.String", "java.lang.String").implementation = function(arg1, arg2){
+		return this.crypt(arg1, arg2);
+	}
+});
+```
+
 ---
 > [frida](https://www.frida.re)
 > [hacking-android-apps-with-frida](https://www.codemetrix.net/hacking-android-apps-with-frida-1/?spm=a313e.7916648.0.0.3d6e6d11W32IYf)
 > [frida releases](https://github.com/frida/frida/releases)
 > [Android逆向之hook框架frida篇](https://www.jianshu.com/p/ca8381d3e094)
+
 
 
