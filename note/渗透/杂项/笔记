@@ -1,0 +1,9 @@
+### header
+
+```
+X-HTTP-Method-Override: PUT 	  # 覆盖http方法(GET, POST, PATCH, DELETE, PUT)
+
+X-Forwarded-For: 127.0.0.1		# 伪装ip
+X-Client-IP: 127.0.0.1			# 伪装ip
+Client-IP: 127.0.0.1			  # 伪装ip
+```
