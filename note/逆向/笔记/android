@@ -1,3 +1,24 @@
+### webview
+
+- 开启javascript
+	```
+	webview.getSettings().setJavaScriptEnabled(true);
+	```
+- java中调用js
+	```
+	webview.loadurl("javascript:func();");   // 需要开启JavaScript
+	```
+- js中调用java接口
+	```java
+	webview.addJavaScriptInterface(new Func(), "android");    // javascript中android即可代表Func对象
+	...
+	
+	class Func{
+		void func1(){}
+		void fun2(){}
+	}
+	```
+
 ### 非root设备使用gdbserver进行native调试
 
 没有root的设备，在使用gdbserver调试app会遇到权限问题。（emulator没问题）
@@ -111,6 +132,7 @@ sudo...
 ```
 
 > [非root Android 设备用gdbserver进行native 调试的方法 ](https://www.52pojie.cn/forum.php?mod=viewthread&tid=462161 "非root Android 设备用gdbserver进行native 调试的方法 ")
+
 
 
 
