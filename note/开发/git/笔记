@@ -1,4 +1,5 @@
 [参考链接](https://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000 "参考链接")
+
 ### 配置
 
 ```
@@ -159,6 +160,26 @@ $ git reset HEAD readme.txt
 - 合并某分支到当前分支：`git merge <name>`
 - 删除分支：`git branch -d <name>`
 
+### 删除git仓库中敏感文件
+
+假设要删除的文件路径为： app/conf/db.py
+
+```bash
+$ git filter-branch --index-filter 'git rm -r --cached --ignore-unmatch app/conf/db.py' HEAD
+
+$ git reflog expire --expire=now --all
+$ git gc --prune=now
+$ git gc --aggressive --prune=now
+
+git push --all --force
+```
+
+### 参考
+
+> [removing sensitive data data from a repository](https://help.github.com/articles/removing-sensitive-data-from-a-repository/)
+> [
+如何永久删除git仓库中敏感文件的提交记录](https://blog.csdn.net/xiangtaoxiangtao/article/details/50864828)
+> 
 
 
 

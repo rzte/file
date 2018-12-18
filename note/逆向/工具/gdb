@@ -1,8 +1,8 @@
-## gdb-peda
+# gdb-peda
 
 [https://github.com/longld/peda](https://github.com/longld/peda)
 
-#### Installation
+## Installation
 
 ```bash
 git clone https://github.com/longld/peda.git ~/peda
@@ -10,7 +10,7 @@ echo "source ~/peda/peda.py" >> ~/.gdbinit
 echo "DONE! debug your program with gdb and enjoy"
 ```
 
-## GDB 常用调试命令
+# GDB 常用调试命令
 
 设置Inter格式的汇编可在`~/.gdbinit`文件中添加`set disassembly-flavor intel`或者在gdb运行时执行此命令。
 
@@ -21,7 +21,7 @@ echo "DONE! debug your program with gdb and enjoy"
 Requires an argument. Valid arguments are i386, i386:x86-64, i386:x64-32, i8086, i386:intel, i386:x86-64:intel, i386:x64-32:intel, i386:nacl, i386:x86-64:nacl, i386:x64-32:nacl, auto
 ```
 
-### 信号
+## 信号
 
 - 捕获信号（handle）
 	```bash
@@ -48,7 +48,7 @@ Requires an argument. Valid arguments are i386, i386:x86-64, i386:x64-32, i8086,
 	...
 	```
 ---
-### 内存相关
+## 内存相关
 
 **gcore**： Generate a core dump of a running program with process ID pid。gcore是linux的命令，但是可以在gdb里直接输入`gcore`来dump调试程序的内存
 
@@ -73,7 +73,7 @@ dump verilog value -- Write the value of an expression to a verilog hex file
 
 ---
 
-### 0x01 源码
+## 源码
 
 在调试过程中查看源代码是必须的。list (缩写 l) 支持多种方式查看源码。
 
@@ -132,7 +132,7 @@ dump verilog value -- Write the value of an expression to a verilog hex file
 (gdb) set listsize 50
 ```
 
-### 0x02 断点
+## 断点
 
 可以使用函数名或者源代码行号设置断点。
 
@@ -187,7 +187,7 @@ Num     Type           Disp Enb Address    What
         stop only if a == 30
 ```
 
-### 0x03 执行
+## 执行
 
 通常情况下，我们会先设置 main 入口断点。
 ```
@@ -224,7 +224,7 @@ Hello, World!
 Program exited normally.
 ```
 
-### 0x04 堆栈
+## 堆栈
 
 查看调用堆栈(call stack)无疑是调试过程中非常重要的事情。
 ```
@@ -265,7 +265,7 @@ Stack level 1, frame at 0xbfad32c0:
   ebp at 0xbfad32b8, eip at 0xbfad32bc
 ```
 
-### 0x05 变量和参数
+## 变量和参数
 
 ```
 (gdb) info locals # 显示局部变量
@@ -297,7 +297,7 @@ a = 100
 b = 8192
 ```
 
-### 0x06 内存及寄存器
+## 内存及寄存器
 
 x 命令可以显示指定地址的内存数据。
 
@@ -349,7 +349,7 @@ gs             0x33     51
 $11 = 4096
 ```
 
-### 0x07 反汇编
+## 反汇编
 
 ```
 我对 AT&T 汇编不是很熟悉，还是设置成 intel 格式的好。
@@ -378,7 +378,7 @@ End of assembler dump.
 
 可以用 `b *address` 设置汇编断点，然后用 "si" 和 "ni" 进行汇编级单步执行，这对于分析指针和寻址非常有用。
 
-### 0x08 进程
+## 进程
 
 查看进程相关信息，尤其是 maps 内存数据是非常有用的。
 
@@ -420,7 +420,7 @@ Mapped address spaces:
         0xbfee2000 0xbfef7000    0x15000 0xbffeb000           [stack]
 ```
 
-### 0x09 线程
+## 线程
 
 可以在 pthread_create 处设置断点，当线程创建时会生成提示信息。
 ```
@@ -447,7 +447,7 @@ Continuing.
 #2  0x08048828 in main (argc=1, argv=0xbffff804) at main.c:36
 ```
 
-### 0x0a 其他
+## 其他
 
 调试**子进程**
 ```
@@ -529,6 +529,7 @@ layout asm：显示反汇编窗口
 layout regs：显示源代码/反汇编和CPU寄存器窗口
 
 layout split：显示源代码和反汇编窗口
+
 
 
 

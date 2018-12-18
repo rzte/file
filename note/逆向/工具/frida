@@ -1,5 +1,7 @@
 ### [FRIDA](https://www.frida.re/)
 
+#### 实例
+
 ```javascript
 // example.js
 
@@ -48,6 +50,8 @@ Java.perform(function(){
 > [hacking-android-apps-with-frida](https://www.codemetrix.net/hacking-android-apps-with-frida-1/?spm=a313e.7916648.0.0.3d6e6d11W32IYf)
 > [frida releases](https://github.com/frida/frida/releases)
 > [Android逆向之hook框架frida篇](https://www.jianshu.com/p/ca8381d3e094)
+
+
 
 
 

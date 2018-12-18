@@ -1,10 +1,13 @@
 ### webview
 
 - 开启javascript
+
 	```
 	webview.getSettings().setJavaScriptEnabled(true);
 	```
+
 - java中调用js
+
 	```
 	webview.loadurl("javascript:func();");   // 需要开启JavaScript
 	```
@@ -12,7 +15,7 @@
 	```java
 	webview.addJavaScriptInterface(new Func(), "android");    // javascript中android即可代表Func对象
 	...
-	
+
 	class Func{
 		void func1(){}
 		void fun2(){}
@@ -29,7 +32,7 @@ Android提供了一个**run-as**命令来暂时切换用户，但这个命令有
 <application android:debuggable="true" ...
 ```
 
-#### 开启`debuggable`的作用主要有两个：
+**开启`debuggable`的作用主要有两个:**
 
 - 可以查看该应用的数据（/data/data/com.xxx.xxx/里的数据）
 - 可以使用gdb_server进行native的debug
@@ -41,7 +44,7 @@ adb push gdbserver /data/local/tmp/
 adb shell chmod 755 /data/local/tmp/gdbserver
 ```
 
-#### 查看所有已安装的apk包：
+### 查看所有已安装的apk包
 
 - adb shell ls -l /data/data/（需root权限才可查看）
 - adb shell pm list package（无需root权限）
@@ -56,19 +59,19 @@ $ ls /data/data/com.xxx/
 cache databases lib ...
 ```
 
-#### 调试模式启动
+### 调试模式启动
 
 ```c
 adb shell am start -D -n com.exammple.vv/.MainActivity
 ```
 
-#### 查看顶部的activity
+### 查看顶部的activity
 
 ```c
 adb shell dumpsys activity top
 ```
 
-#### 分析Trace文件
+### 分析Trace文件
 
 用DDMS`Start Method Profiling`抓取到的trace文件可用**dmtracedump**转换为图片进行分析其调用关系
 
@@ -98,6 +101,8 @@ $ dmtracedump -g out.png ddms736688747470615083.trace
 
 
 ### 源码
+
+#### 源码
 
 ```bash
 git clone https://android.google.com/kernel/common.git
@@ -131,7 +136,11 @@ export TARGET_PREBUILT_KERNEL=$your_kernel_path/arch/arm/boot/zImage # 编译后
 sudo...
 ```
 
+### 参考
+
 > [非root Android 设备用gdbserver进行native 调试的方法 ](https://www.52pojie.cn/forum.php?mod=viewthread&tid=462161 "非root Android 设备用gdbserver进行native 调试的方法 ")
+
+
 
 
 
