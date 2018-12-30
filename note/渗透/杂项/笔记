@@ -43,4 +43,9 @@ Client-IP: 127.0.0.1			  # 伪装ip
 ### 参考
 
 > [实战 SSH端口转发](https://www.ibm.com/developerworks/cn/linux/l-cn-sshforward/)
+>
+> [10 useful ncat (nc) Command Examples for Linux Systems
+](https://www.linuxtechi.com/nc-ncat-command-examples-linux-systems/)
+
+
 
