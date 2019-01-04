@@ -18,7 +18,228 @@ Nginx 同时也是一个非常优秀的邮件代理服务器（最早开发这�
 
 Nginx 启动特别容易，并且几乎可以做到7*24不间断运行，即使运行数个月也不需要重新启动。你还能够在 不间断服务的情况下进行软件版本的升级。
 
+### 常用配置
 
+#### server_tokens
+
+是否在错误界面和请求头中展示版本信息
+
+- syntax: server_tokens on|off
+
+- default: server_tokens on
+
+- context: http, server, location
+
+#### types
+
+对于`image/jpeg`、`application/pdf`、`video/mpeg`等这些特殊的类型，为了防止类型解析可以做如下配置：
+
+```
+location /download/ {	# 对于 download 路径下的资源要直接下载，而不进行解析
+    types        { }	# 清空原有类型映射
+    default_type application/octet-stream;	# 设置默认类型为普通响应流
+}
+```
+
+#### 变量
+
+核心模块支持内置变量，其名称与Apache中变量名称相对应
+
+- **$http_user_agent**
+
+- **$http_cookie**
+
+- **$arg_PARAMETER**
+	url中的参数（如果有）
+
+- **$args**
+	请求行中的参数
+
+- **$binary_remote_addr**
+	二进制形式的客户端地址
+
+- **$body_bytes_sent**
+	响应时送出的body字节数数量。即使连接中断，这个数据也是精确的。
+
+- **$content_length**
+	等于请求头中的Content-Length
+
+- **$cookie_COOKIE**
+
+- **$document_root**
+	This variable is equal to the value of directive root for the current request;
+
+- **$document_uri**
+	The same as $uri.
+
+- **$host**
+	请求主机头字段，否则为服务器名称。
+
+- **$http_HEADER**
+	转换为小写并将“破折号”转换为“下划线”时HTTP头
+
+- **$is_args**
+	如果有$args参数，这个变量等于”?”，否则等于”"，空值。
+
+- **$limit_rate**
+	这个变量可以限制连接速率。
+
+- **$query_string**
+	同 $args.
+
+- **$remote_addr**
+	The address of the client.
+
+- **$remote_port**
+	The port of the client;
+
+- **$remote_user**
+	Auth Basic认证时的用户名
+
+- **$request_filename**
+	此变量等于当前请求的文件路径，由指令root或别名和URI请求组成;
+
+- **$request_body**
+	请求体,此变量的重要性出现在具有指令proxy_pass或fastcgi_pass的位置
+
+- **$request_body_file**
+	请求体的临时文件
+
+- **$request_completion**
+	 如果请求结束，设置为OK. 当请求未结束或如果该请求不是请求链串的最后一个时，为空(Empty)
+
+- **$request_method**
+	请求方法：GET、POST...
+
+- **$request_uri**
+	请求uri
+
+- **$scheme**
+	schema，例：
+	```conf
+	rewrite  ^(.+)$  $scheme://example.com$1  redirect;
+	```
+
+- **$server_addr**
+	服务器地址。通常，为获得此变量的值，需要进行一次系统调用。为了避免系统调用，有必要在指令listen中指示地址并使用参数bind
+
+- **$server_name**
+	服务器名
+
+- **$server_port**
+	服务端口
+
+- **$server_protocol**
+	协议：`HTTP/1.0` or `HTTP/1.1`
+
+- **$uri**
+	当前的uri，可能与$request_uri不同。$request_uri是浏览器发过来的，$uri是重定向后的uri
+
+#### HTTP Upstream 模块（轮询、负载均衡）
+
+```conf
+upstream backend  {
+  server backend1.example.com weight=5;
+  server backend2.example.com:8080;
+  server unix:/tmp/backend3;
+}
+
+server {
+  location / {
+    proxy_pass  http://backend;
+  }
+}s
+```
+
+**ip_hash**
+
+```conf
+upstream backend {
+  ip_hash;		# 使请求根据客户端的IP地址在上游之间分配，hash的关键在于客户端的C类地址
+  server   backend1.example.com;
+  server   backend2.example.com;
+  server   backend3.example.com  down;
+  server   backend4.example.com;
+}
+```
+
+#### HttpAccess模块
+
+ngx_http_access_module 模块使有可能对特定IP客户端进行控制. 规则检查按照第一次匹配的顺序
+
+```conf
+location / {
+: deny    192.168.1.1;
+: allow   192.168.1.0/24;
+: allow   10.1.1.0/16;
+: deny    all;
+}
+```
+
+#### Http Referer模块
+
+验证referer
+
+```conf
+location /photos/ {
+  valid_referers none blocked www.mydomain.com mydomain.com;
+
+  if ($invalid_referer) {
+    return   403;
+  }
+}
+```
+
+#### Map
+
+- syntax: map $var1 $var2 { ... }
+
+- context: http
+
+map 指令是由 ngx_http_map_module 模块提供的，默认情况下安装 nginx 都会安装该模块。
+
+map 的主要作用是创建自定义变量，通过使用 nginx 的内置变量，去匹配某些特定规则，如果匹配成功则设置某个值给自定义变量。 而这个自定义变量又可以作于他用。
+
+```conf
+map  $http_host  $name  {
+  hostnames;			# 它允许更容易地匹配诸如主机名之类的值，具有起始点的名称可以匹配确切的主机名和以该值结尾的主机名
+  default          0;	# 默认
+  example.com      1;	# $http_host 匹配到 example.com 时， $name的值为1
+  *.example.com    1;
+  test.com         2;
+  *.test.com       2;	# $http_host 匹配到 *.test.com 时， $name的值为2
+  .site.com        3;
+}
+```
+
+```conf
+map $uri $new {		# 根据 $uri 决定 $new的值
+  default        http://www.domain.com/home/;	# $new默认值
+
+  /aa            http://aa.domain.com/;			# $uri为 /aa 时的new的值
+  /bb            http://bb.domain.com/;
+  /john          http://my.domain.com/users/john/;
+}
+
+server {
+  server_name   www.domain.com;
+  rewrite  ^    $new   redirect;	# 这里 $new 会依据上面的 map 决定
+}
+```
 
 ### 参考
 > [nginx中文文档](http://www.nginx.cn/doc/)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
