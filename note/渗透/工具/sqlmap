@@ -1,4 +1,8 @@
 ---
+### 最大线程
+
+sqlmap默认最大线程数为10，可修改`lib\core`下的`settings.py`文件中的`MAX_NUMBER_OF_THREADS`
+
 ### 五种漏洞检测技术
 
 - Boolean-based blind
@@ -290,6 +294,7 @@
 - `--reg-key/ --reg-value/ --reg/data/ --reg-type`
 
 - `sqlmap -u "http://192.168.1.12/a.php?id=1" --reg-add --reg-key="HKEY_LOCAL_MACHINE\SOFTWARE\sqlmap" --reg-value=Test --reg-type=REG_SZ --reg-data=1`
+
 
 
 
