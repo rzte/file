@@ -627,9 +627,9 @@ CA证书，用于检查客户端证书。
 
 **ssl_session_cache**
 
-设置ssl/tls会话缓存的类型和大小。如果设置了这个参数一般是shared，buildin可能会参数内存碎片，默认是none，和off差不多，停用缓存。如shared:SSL:10m表示我所有的nginx工作进程共享ssl会话缓存，官网介绍说1M可以存放约4000个sessions
+设置ssl/tls会话缓存的类型和大小。如果设置了这个参数一般是shared，buildin可能会参数内存碎片，默认是none，和off差不多，停用缓存。如 `shared：SSL:10m` 表示我所有的nginx工作进程共享ssl会话缓存，官网介绍说1M可以存放约4000个sessions
 
-- syntax: ssl_session_cache off|none|builtin:size and/or shared:name:size
+- syntax: ssl_session_cache off|none|builtin:size and/or shared：name:size
 - default: ssl_session_cache off
 - context: main, server
 
@@ -712,6 +712,7 @@ Nginx能够处理和代理以下邮件协议：
 > [Nginx URL重写（rewrite）配置及信息详解](https://www.cnblogs.com/czlun/articles/7010604.html)
 >
 > [nginx配置ssl加密](https://segmentfault.com/a/1190000002866627)
+
 
 
 
