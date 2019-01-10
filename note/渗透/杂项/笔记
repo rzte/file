@@ -40,12 +40,63 @@ Client-IP: 127.0.0.1			  # 伪装ip
 	$socat TCP-LISTEN:4040,reuseaddr, fork TCP:localhost：4000
 	```
 
+### 任意文件下载
+
+#### locate
+
+linux中有一个命令 **locate** 是用来查找文件或目录的，它不搜索具体目录，而是所有一个数据库 **/var/lib/mlocate/mlocate.db**（需要root权限）。这个数据库中含有本地所有文件的信息。Linux自动创建这个数据库，一天更新一次。
+
+```conf
+rz@kali:/opt/tmp$ ls -l /var/lib/mlocate/mlocate.db 
+-rw-r----- 1 root mlocate 119291736 1月   6 06:31 /var/lib/mlocate/mlocate.db
+rz@kali:/opt/tmp$ locate anythingyouwant
+^C
+rz@kali:/opt/tmp$
+```
+
+#### 一些常用的下载文件
+
+Windows:
+
+```
+C:\boot.ini //查看系统版本
+C:\Windows\System32\inetsrv\MetaBase.xml //IIS配置文件
+C:\Windows\repair\sam //存储系统初次安装的密码
+C:\Program Files\mysql\my.ini //Mysql配置
+C:\Program Files\mysql\data\mysql\user.MYD //Mysql root
+C:\Windows\php.ini //php配置信息
+C:\Windows\my.ini //Mysql配置信息
+C:\Windows\win.ini //Windows系统的一个基本系统配置文件
+```
+
+Linux:
+
+```
+/root/.ssh/authorized_keys
+/root/.ssh/id_rsa
+/root/.ssh/id_ras.keystore
+/root/.ssh/known_hosts //记录每个访问计算机用户的公钥
+/etc/passwd
+/etc/shadow
+/etc/my.cnf //mysql配置文件
+/etc/httpd/conf/httpd.conf //apache配置文件
+/root/.bash_history //用户历史命令记录文件
+/root/.mysql_history //mysql历史命令记录文件
+/proc/mounts //记录系统挂载设备
+/porc/config.gz //内核配置文件
+/var/lib/mlocate/mlocate.db //全文件路径
+/porc/self/cmdline //当前进程的cmdline参数
+```
+
+
 ### 参考
 
 > [实战 SSH端口转发](https://www.ibm.com/developerworks/cn/linux/l-cn-sshforward/)
 >
 > [10 useful ncat (nc) Command Examples for Linux Systems
 ](https://www.linuxtechi.com/nc-ncat-command-examples-linux-systems/)
+>
+> [任意文件下载引发的思考](https://mp.weixin.qq.com/s/iYwd0vIlratE_t_VasroLA?)
 
 
 
