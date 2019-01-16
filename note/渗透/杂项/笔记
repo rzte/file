@@ -86,6 +86,7 @@ Linux:
 /porc/config.gz //内核配置文件
 /var/lib/mlocate/mlocate.db //全文件路径
 /porc/self/cmdline //当前进程的cmdline参数
+/var/log/wtmp // 登陆日志，可用 who /var/log/wtmp 查看
 ```
 
 
@@ -97,6 +98,7 @@ Linux:
 ](https://www.linuxtechi.com/nc-ncat-command-examples-linux-systems/)
 >
 > [任意文件下载引发的思考](https://mp.weixin.qq.com/s/iYwd0vIlratE_t_VasroLA?)
+
 
 
 
