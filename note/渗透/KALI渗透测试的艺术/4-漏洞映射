@@ -44,28 +44,36 @@ CGE是小型的Perl脚本程序，可测试Cisco设备的14中独立的漏洞。
 ### Fuzz分析工具
 通常认为，模糊测试由6个步骤组成，这些步骤分别是识别目标、识别输入、生成模糊测试数据、执行模糊数据、监控输出和鉴别问题的可利用性（是否是exploit）。
 
-- **Bruteforce Exploit Detector**（BED）
-  BED是纯文本协议的模糊测试工具，用于检测软件常见漏洞（**缓冲区溢出、格式化字符串、整数溢出、DOS条件等**）。它可根据**指定的协议**，自动发送含有问题字符串的命令组合，以测试目标的处理方式。它目前支持的协议由：ftp、smtp、pop、http、irc、imap、pjl、lpd、finger、sock4、sock5。
+#### BED
+BED（Bruteforce Exploit Detector）是纯文本协议的模糊测试工具，用于检测软件常见漏洞（**缓冲区溢出、格式化字符串、整数溢出、DOS条件等**）。它可根据**指定的协议**，自动发送含有问题字符串的命令组合，以测试目标的处理方式。它目前支持的协议由：ftp、smtp、pop、http、irc、imap、pjl、lpd、finger、sock4、sock5。
+
 ```
 bed -s ftp  显示ftp插件的说明
 
 bed -s ftp -u ftpuser -v ftpuser -t 192.168.31.182 -p 21 -o 3
 ```
 
-- **JBroFuzz**
-    JBroFuzz是对web应用程序进行模糊测试的著名平台。它可模拟HTTP协议和HTTPS协议的web请求。获悉要测试的域名和测试的URL部分之后，审计人员可自己手工构造测试的请求，也可使用程序预定义的payload数据库生成基于已知漏洞的恶意请求，再把这些请求发送到目标服务器进行模糊测试。
-    JbroFuzz的数据库能帮助审计人员进行XSS、SQL注入、缓冲区溢出、格式字符串错误等问题的自动化测试。
+#### JBroFuzz
+
+JBroFuzz是对web应用程序进行模糊测试的著名平台。它可模拟HTTP协议和HTTPS协议的web请求。获悉要测试的域名和测试的URL部分之后，审计人员可自己手工构造测试的请求，也可使用程序预定义的payload数据库生成基于已知漏洞的恶意请求，再把这些请求发送到目标服务器进行模糊测试。
+
+JbroFuzz的数据库能帮助审计人员进行XSS、SQL注入、缓冲区溢出、格式字符串错误等问题的自动化测试。
 
 ### SMB分析工具
-Server Message Block（SMB）是应用层协议，通常用于文件和打印机共享服务。此外，他还可将网络中不同节点的串口服务和其他通信协议共享。SMB又称为CIFS。  
-**ImpacketSamrdump**是获取主机敏感信息的工具。它通过DCE/RPC服务调用SAM的远程接口，继而获取信息。它可列举同一局域网内的目标主机上的所有系统共享、用户账户和其他信息。  
+
+Server Message Block（SMB）是应用层协议，通常用于文件和打印机共享服务。此外，他还可将网络中不同节点的串口服务和其他通信协议共享。SMB又称为CIFS。
+
+**ImpacketSamrdump**是获取主机敏感信息的工具。它通过DCE/RPC服务调用SAM的远程接口，继而获取信息。它可列举同一局域网内的目标主机上的所有系统共享、用户账户和其他信息。
+
 ```
 cd /usr/share/doc/python-impacket-doc/examples/samrdump.py
 python samrdump.py
 ```
 
 ### SNMP分析工具
-SNMP（Simple Network Management Protocol）是一个运行于UDP协议161端口的应用层协议。主要用于网络设备运行状态的监控，以关注需要管理员干预的事，即使了解注入电源断电、网络不可达等网络运行情况。  
+
+SNMP（Simple Network Management Protocol）是一个运行于UDP协议161端口的应用层协议。主要用于网络设备运行状态的监控，以关注需要管理员干预的事，即使了解注入电源断电、网络不可达等网络运行情况。
+
 采用了SNMP管理技术的网络结构，通常由网络设备、管理端和代理段组成。
 
 **SNMP Walk**是一个功能强大的SNMP信息采集工具。可用依据设备类型提取所有配置数据。
@@ -78,9 +86,11 @@ SNMP（Simple Network Management Protocol）是一个运行于UDP协议161端口
 
 - **DBPwAudit**
     是一款审计Oracle、Mysql、MS-SQL和IBM DB2服务器密码安全性的工具，它是java程序。(/usr/share/dbpwaudit/)
+
 - **SQLMap**
     SQL注入审计工具，支持的数据库包括MS-SQL、MySql、Oracle和PostgresSQL。略微处理后，它也能识别注入DB2、Informix、Sybase、Interbase和MS Access之类的数据库系统。
     SQLMap采用4中独特的SQL注入技术，分别是**SQL盲注、联合查询SQL注入、累加式注入和基于事件的SQL盲注**。可对数据库进行指纹识别、服务枚举、数据提取，并可访问目标主机的文件系统，在获取完全操作权时甚至可执行任意命令。
+
 ```
 sqlmap -u 'http://192.168.72.1:8088/dvwa/vulnerabilities/sqli/?id=123&Submit=Submit' -p id -f -b --current-user --current-db --dbs --users --cookie "security=low; JSESSIONID=49F8F9547755AEAE8AE4D4E706D63D22; PHPSESSID=saecd4o0bs49l15mvcs4mvhoe0; BEEFHOOK=3OPcq4N4COqf2F7EJPkUp9CzWhvJpX32omNyEKTaaDc0yqw9iittAbUknHszfEprUkjA9EtANyX84ohU"
 
@@ -116,3 +126,5 @@ wafw00f http://www.example.net/             # 分析目标网站是否使用waf�
 ```
 - **WebScarab**
     <a href="https://www.owasp.org/index.php/Category:OWASP_WebScarab_Project">webscarab</a>是一款功能强大的web应用程序安全评估工具。主要模式是**拦截代理**。webscarab集成了诸多工具，包括fuzzer、session ID analysis、spider、web services analyzer、xss和crlf漏洞扫描器和transcoder等程序。
+
+
