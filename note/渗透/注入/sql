@@ -102,7 +102,7 @@
     +----------------------------------+
     ```
 
-	- ascii
+	- ascii（ord)
 
 	```sql
 	+-----------------------------+
@@ -271,6 +271,7 @@
 
 > [少年，这是我特意为你酿制的Oracle 注入，干了吧！](https://bbs.ichunqiu.com/thread-26734-1-1.html)
 > [十种MySQL报错注入](https://www.cnblogs.com/wocalieshenmegui/p/5917967.html)
+
 
 
 
