@@ -33,6 +33,16 @@ Client-IP: 127.0.0.1			  # 伪装ip
 
 - ssh
 
+	- 端口转发
+	```bash
+	# -R [bind_address:]port:host:hostport
+    # -R [bind_address:]port:local_socket
+    # -R remote_socket:host:hostport
+    # -R remote_socket:local_socket
+    # -R [bind_address:]port
+	$ ssh -R 1080:localhost:8080 root@12.34.56.78
+	```
+
 - socat
 
 	- 端口转发
@@ -101,6 +111,7 @@ Linux:
 >
 > [巧用命令注入的N种方式
 ](https://mp.weixin.qq.com/s/Hm6TiLHiAygrJr-MGRq9Mw)
+
 
 
 
