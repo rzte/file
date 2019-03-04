@@ -40,3 +40,29 @@
 - 字符串
   - Option -> Ascii string style，编辑字符串风格（默认是C风格，以0结尾的字符串）
   - Edit -> Strings，将数据转换为字符串
+
+# 加载 dump binary
+
+有时可能需要从内存中dump出来代码段进行分析
+
+## 直接拖入，选择模式
+
+![加载模式](/images/Mon-Mar--4-10:53:53-2019_796430.png "加载模式")
+
+## 设置基址
+
+Edit -> Segments -> Rebase the whole program
+
+![设置基址](/images/Mon-Mar--4-10:56:03-2019_125768.png "设置基址")
+
+## 设置编译选项
+
+此时仍然无法正常用f5反编译，需要设置一下这个程序的编译选项。否则可能会提示："The target compiler was not specified in Options, Compiler. The decompiler set it based on the input file format"
+
+Option -> Compiler（下面是gcc的示例）
+
+![编译选项](/images/Mon-Mar--4-11:00:02-2019_534533.png)
+
+
+
+
