@@ -35,20 +35,25 @@ Client-IP: 127.0.0.1			  # 伪装ip
 
 	- 端口转发
 	```bash
-	# -R [bind_address:]port:host:hostport
-    # -R [bind_address:]port:local_socket
-    # -R remote_socket:host:hostport
-    # -R remote_socket:local_socket
-    # -R [bind_address:]port
-	$ ssh -R 1080:localhost:8080 root@12.34.56.78
+	# -R [bind_address：]port：host：hostport
+    # -R [bind_address：]port：local_socket
+    # -R remote_socket：host：hostport
+    # -R remote_socket：local_socket
+    # -R [bind_address：]port
+	$ ssh -R 1080:localhost：8080 root@12.34.56.78
 	```
 
 - socat
 
 	- 端口转发
 	```bash
-	$socat TCP-LISTEN:4040,reuseaddr, fork TCP:localhost：4000
+	$socat -d -d -lf /var/log/socat.log TCP4-LISTEN：15000,reuseaddr,fork,su=nobody TCP4：server.wesnoth.org：15000
 	```
+	> “-d -d -lf /var/log/socat.log”是参数，前面两个连续的-d -d代表调试信息的输出级别，-lf则指定输出信息的保存文件。
+	>
+	> “TCP4-LISTEN:15000,reuseaddr,fork,su=nobody”是一号地址，代表在15000端口上进行TCP4协议的监听，复用绑定的IP，每次又连接到来就fork复制一个进程进行处理，同时将执行用户设置为nobody用户。
+	>
+	> “TCP4:server.wesnoth.org:15000″是二号地址，代表将socat监听到的任何请求，转发到server.wesnoth.org:15000上去。
 
 ### 任意文件下载
 
@@ -111,6 +116,8 @@ Linux:
 >
 > [巧用命令注入的N种方式
 ](https://mp.weixin.qq.com/s/Hm6TiLHiAygrJr-MGRq9Mw)
+>
+> [使用socat进行端口转发](http://www.cnblogs.com/lexus/archive/2012/12/02/2798796.html)
 
 
 
