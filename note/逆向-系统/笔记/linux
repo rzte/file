@@ -12,8 +12,43 @@
 - `nasm`
 	汇编器：`nasm -f elf shell.asm -o shell.o`
 
+- `ndisasm`
+	反汇编，将机器码转成汇编语言
+
+	```bash
+	rz@kali:/tmp$ xxd shell.sh
+	00000000: 6a68 682f 2f2f 7368 2f62 696e 89e3 6801  jhh///sh/bin..h.
+	00000010: 0101 0181 3424 7269 0101 31c9 516a 0459  ....4$ri..1.Qj.Y
+	00000020: 01e1 5189 e131 d26a 0b58 cd80            ..Q..1.j.X..
+	rz@kali:/tmp$ ndisasm -b32 shell.sh
+	00000000  6A68              push byte +0x68
+	00000002  682F2F2F73        push dword 0x732f2f2f
+	00000007  682F62696E        push dword 0x6e69622f
+	0000000C  89E3              mov ebx,esp
+	0000000E  6801010101        push dword 0x1010101
+	00000013  81342472690101    xor dword [esp],0x1016972
+	0000001A  31C9              xor ecx,ecx
+	0000001C  51                push ecx
+	0000001D  6A04              push byte +0x4
+	0000001F  59                pop ecx
+	00000020  01E1              add ecx,esp
+	00000022  51                push ecx
+	00000023  89E1              mov ecx,esp
+	00000025  31D2              xor edx,edx
+	00000027  6A0B              push byte +0xb
+	00000029  58                pop eax
+	0000002A  CD80              int 0x80
+	```
+
 - `objdump`
 	反汇编目标文件
+
+- `strace`
+	跟踪系统调用
+
+### 转储内存
+
+`ulimit -c unlimited`，转储的内核文件可以是任意大小
 
 ### 参数传递规则
 
@@ -160,6 +195,8 @@ IFS=$'\n'		# 这次是真正的换行符
 ### Linux下32位程序执行流程
 
 [![32位ELF执行流程](http://dbp-consulting.com/tutorials/debugging/images/callgraph.png "32位ELF执行流程")](http://dbp-consulting.com/tutorials/debugging/linuxProgramStartup.html "32位ELF执行流程")
+
+
 
 
 
