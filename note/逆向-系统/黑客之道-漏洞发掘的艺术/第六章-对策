@@ -1,0 +1,65 @@
+# 守护程序
+
+守护程序是在后台运行，且以某种方式与控制终端分离的程序。程序一般以一个字母d(daemon)结尾以表示它们是守护程序，如 sshd 或者 syslogd
+
+daemon()函数将衍生一个新的后台进程，linux的许多守护程序进程都会使用这个函数
+
+```
+NAME
+    daemon - run in the background
+
+SYNOPSIS
+    #include <unistd.h>
+
+    int daemon(int nochdir, int noclose);
+
+Feature Test Macro Requirements for glibc (see feature_test_macros(7)):
+
+    daemon():
+        Since glibc 2.21:
+            _DEFAULT_SOURCE
+        In glibc 2.19 and 2.20:
+            _DEFAULT_SOURCE || (_XOPEN_SOURCE && _XOPEN_SOURCE < 500)
+        Up to and including glibc 2.19:
+            _BSD_SOURCE || (_XOPEN_SOURCE && _XOPEN_SOURCE < 500)
+```
+
+## 信号
+
+信号是 UNIX 进程间通信的方法。在某个进程收到一个信号时，其执行流程将被操作系统中断，以便调用信号处理程序。信号通过数字来辨识，每个信号有默认的信号处理程序。例如在程序控制终端按 Ctrl+C键时，将发送一个中断信号，该信号的默认处理程序将退出该程序。这样即使该程序陷于死循环中，也允许这样退出程序。注意，`kill -9`发送的 SIGKILL 信号，应用程序时无法修改的
+
+```
+#include<stdio.h>
+#include<stdlib.h>
+#include<signal.h>
+
+void signal_handler(int signal){
+        printf("Caught signal %d\t", signal);
+        if(signal == SIGTSTP)
+                printf("SIGTSTP(Ctrl-Z)");
+        else if(signal == SIGQUIT)
+                printf("SIGQUIT(Ctrl-\\)");
+        else if(signal == SIGUSR1)
+                printf("SIGUSR1");
+        else if(signal == SIGUSR2)
+                printf("SIGUSR2");
+        printf("\n");
+}
+
+void sigint_handler(int x){
+        puts("Cautht a Ctrl-C(SIGINT) in a separate handler\nExiting.");
+        exit(0);
+}
+
+int main(){
+        // Registering signal handlers
+        signal(SIGQUIT, signal_handler);
+        signal(SIGTSTP, signal_handler);
+        signal(SIGUSR1, signal_handler);
+        signal(SIGUSR2, signal_handler);
+
+        signal(SIGINT, sigint_handler);
+        while(1){}
+}
+```
+
