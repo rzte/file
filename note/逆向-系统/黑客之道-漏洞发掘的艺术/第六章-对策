@@ -63,3 +63,110 @@ int main(){
 }
 ```
 
+## 调试子进程
+
+程序如下：
+
+```c
+void timestamp(int fd){
+	time_t now;
+	struct tm* time_struct;
+	int length;
+	char time_buffer[40];
+
+	time(&now);
+	time_struct = localtime((const time_t*)&now);
+	length = strftime(time_buffer, 40, "%m%d%Y %H:%M:%S\n", time_struct);
+	write(fd, time_buffer, length);
+}
+
+void main(){
+	if (daemon(1,0) == -1){
+		puts("forking to daemon process");
+		exit(-1);
+	}
+
+	while (1){
+		timestamp(1);
+		sleep(1);
+	}
+}
+```
+
+在`daemon`后，开启了子进程，正常调试仍跟踪父进程，会直接结束。可用用`follow-fork-mode`设置为child来实现，这样调试程序将跟踪到子进程中，在其中会遇到断点
+
+```c
+gdb-peda$ help set follow-fork-mode
+Set debugger response to a program call of fork or vfork.
+A fork or vfork creates a new process.  follow-fork-mode can be:
+  parent  - the original process is debugged after a fork
+  child   - the new process is debugged after a fork
+The unfollowed process will continue to run.
+By default, the debugger will follow the parent process.
+
+gdb-peda$ set follow-fork-mode child
+gdb-peda$ r
+Starting program: /tmp/a.out
+[Attaching after process 2916 fork to child process 2920]
+[New inferior 2 (process 2920)]
+[Detaching after fork from parent process 2916]
+[Inferior 1 (process 2916) detached]
+[Switching to process 2920]
+...
+...
+```
+
+或者直接附加子进程
+
+```c
+rz@kali:/tmp$ ps -ef | grep a.out
+rz         2613      1  0 15:26 ?        00:00:00 ./a.out
+rz         2975   2793  0 15:41 pts/1    00:00:00 grep a.out
+rz@kali:/tmp$ gdb -q --pid 2613 --symbols ./a.out
+Reading symbols from ./a.out...done.
+Attaching to process 2613
+No executable file now.
+...
+...
+```
+
+# 巩固对策
+
+漏洞发掘一般可化为3个步骤：
+
+- 破坏某些类型的内存内容
+
+- 然后改变控制流程
+
+- 最后执行shellcode
+
+## 不可执行堆栈
+
+大多数程序不需要在堆栈中执行任何操作，因此防止缓冲区溢出漏洞挖掘的一种明显方法就是使堆栈不可执行
+
+一般可通过ROP来绕过
+
+## 随机排列堆栈空间
+
+ASLR，全称为 Address Space Layout Randomization，地址空间布局随机化。ASLR 技术在 2005 年的 kernel 2.6.12 中被引入到 Linux 系统，它将进程的某些内存空间地址进行随机化来增大入侵者预测目的地址的难度，从而降低进程被成功入侵的风险。当前 Linux、Windows 等主流操作系统都已经采用该项技术。linux中对应 `/proc/sys/kernel/randomize_va_space`
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
