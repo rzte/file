@@ -1,0 +1,39 @@
+# Android各个层次
+
+## DalvikVM
+
+DEX文件在被虚拟机解释前会进行优化处理，对于一个从Android应用中启动的DEX文件，这种优化通常只在应用第一次启动时进行一次。优化过程的结果是一个优化后的DEX文件（**ODEX**)。需要注意，ODEX文件是无法在不同版本的DalvikVM之间或是不同设备之间直接进行移植的
+
+## 用户空间原生代码层
+
+操作系统用户空间内的原生代码构成了Android系统的一大部分，这一层主要由两大类组成：程序库和核心系统服务
+
+### 程序库
+
+Android框架层中较高层次类所依赖的许多底层功能都是通过共享程序库的方式来实现，并通过JNI进行访问。其中许多程序库也是在其它类Unix系统中所使用的知名开源项目，比如SqlLite、Webkit、FreeType等
+
+供应商特定的程序库，即那些位某一设备型号提供硬件支持的代码库，保存在 /vendor/lib（或 /system/vendor/lib）路径。包括图形显示设备、GPS收发器或蜂窝式无线电的底层支持库等。非厂商特定的程序库则保存在 /system/lib 路径中，通常会包括一些外部项目，比如
+
+- libexif: JPEG EXIF格式的处理库
+- libexpat: Expat的XML解析器
+- libaudioalsa/libtinyalsa: ALSA音频库
+- libbluetooth： BlueZ Linux蓝牙库
+- libdbus： D-Bus 的IPC库
+
+然而，并非所有的底层程序库都是标准的，例如Bionic。Bionic是BSD C运行时库的一个变种，旨在提供更小的内存使用空间，更好的优化，同时避免产生 GNU 公共许可证（GPL）授权问题
+
+### 核心系统服务
+
+
+
+
+
+
+
+
+
+
+
+
+
+
