@@ -2,6 +2,15 @@
 
 ## 一些常用函数
 
+- [FindWindow](https://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-findwindoww)
+
+```
+HWND FindWindowW(
+  LPCWSTR lpClassName,
+  LPCWSTR lpWindowName
+);
+```
+
 - [VirtualAllocEx](https://docs.microsoft.com/en-us/windows/desktop/api/memoryapi/nf-memoryapi-virtualallocex)
 
 在指定进程的虚拟空间保留或提交内存区域，除非指定MEM_RESET参数，否则将该内存区域置0。
@@ -129,6 +138,17 @@ DWORD GetModuleBaseNameW(
   HMODULE hModule,
   LPWSTR  lpBaseName,
   DWORD   nSize
+);
+```
+
+- [CreateToolhelp32Snapshot](https://docs.microsoft.com/en-us/windows/desktop/api/tlhelp32/nf-tlhelp32-createtoolhelp32snapshot)
+
+CreateToolhelp32Snapshot可以通过获取进程信息为指定的进程、进程使用的堆[HEAP]、模块[MODULE]、线程建立一个快照。说到底，可以获取系统中正在运行的进程信息，线程信息，等。
+
+```
+HANDLE CreateToolhelp32Snapshot(
+  DWORD dwFlags,			// //用来指定“快照”中需要返回的对象，可以是TH32CS_SNAPPROCESS等
+  DWORD th32ProcessID		// //一个进程ID号，用来指定要获取哪一个进程的快照，当获取系统进程列表或获取 当前进程快照时可以设为0
 );
 ```
 
@@ -286,6 +306,9 @@ windows下dll的加载顺序大致为：
 导入段包含了一个模块所需的所有DLL的名称，我们可以在文件的导入段中找到那个要被替换的DLL的名称，对它进行修改或在导入段中添加我们的dll
 
 # HOOK
+
+
+
 
 
 
