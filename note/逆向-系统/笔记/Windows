@@ -11,6 +11,19 @@ HWND FindWindowW(
 );
 ```
 
+- [VirtualProtect]()
+
+修改内存页属性
+
+```
+BOOL VirtualProtect(
+  LPVOID lpAddress,
+  SIZE_T dwSize,
+  DWORD  flNewProtect,
+  PDWORD lpflOldProtect
+);
+```
+
 - [VirtualAllocEx](https://docs.microsoft.com/en-us/windows/desktop/api/memoryapi/nf-memoryapi-virtualallocex)
 
 在指定进程的虚拟空间保留或提交内存区域，除非指定MEM_RESET参数，否则将该内存区域置0。
@@ -306,6 +319,7 @@ windows下dll的加载顺序大致为：
 导入段包含了一个模块所需的所有DLL的名称，我们可以在文件的导入段中找到那个要被替换的DLL的名称，对它进行修改或在导入段中添加我们的dll
 
 # HOOK
+
 
 
 
