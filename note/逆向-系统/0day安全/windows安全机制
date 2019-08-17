@@ -1,0 +1,25 @@
+# 内存保护
+
+- 使用GS编译技术，在函数返回地址之前加入了Security Cookie，在函数返回前首先检测Security Cookie是否被覆盖，从而把针对操作系统的栈溢出利用变得非常困难
+
+- 增加了对 S.E.H 的安全校验机制，能够有效的挫败绝大多数通过改写 S.E.H 而劫持进程的攻击
+
+- 堆中加入了 Heap Cookie、Safe Unlinking 等一系列的安全机制，为原本就困难重重的堆溢出增加了更多的限制
+
+- DEP（Data Execution Protection，数据执行保护）将数据部分标识为不可执行，组织了堆、栈和数据节中攻击代码的执行
+
+- ASLR（Address space layout randomization，加载地址随机）技术通过对系统关键地址的随机化，使得经典堆溢出手段失效
+
+- SEHOP(Structured Exception Handler Overwrite Protection, S.E.H 覆盖保护)，作为对安全 S.E.H 机制的补充，SEHOP将 S.E.H 的保护提升到系统级别，使得 S.E.H 的保护机制更有效
+
+# GS
+
+Visual Studio 2003及以后版本的Visual Studio默认启用了这个编译选项
+
+![GS](/images/Sat-Aug-17-10:56:39-2019_127770.png "GS")
+
+GS编译选项为每个函数调用增加了一些额外的数据和操作，用来检测栈溢出
+
+- 在所有函数调用发生时，向栈帧内压入一个额外的随机DWORD，这个随机数被称作“canary”，如果使用IDA反汇编的话，可看到IDA会将这个随机数标记为“Security Cookie”
+
+- Security Cookie位于ebp之前，系统还将在 .data 的内存区域放置一个 Security Cookie的副本
