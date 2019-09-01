@@ -1,5 +1,8 @@
 ### 工具
 
+- `auditd`
+	主要用于查看系统改动的信息，如系统密码修改，用户的新建，主要用于保障系统的安全
+
 - `nm`
 	用于列出目标文件中的符号。可以用它来查找程序中各个函数的地址
 
@@ -195,6 +198,7 @@ IFS=$'\n'		# 这次是真正的换行符
 ### Linux下32位程序执行流程
 
 [![32位ELF执行流程](http://dbp-consulting.com/tutorials/debugging/images/callgraph.png "32位ELF执行流程")](http://dbp-consulting.com/tutorials/debugging/linuxProgramStartup.html "32位ELF执行流程")
+
 
 
 
