@@ -1,6 +1,4 @@
-# 注入
-
-## 一些常用函数
+# 一些常用函数
 
 - [FindWindow](https://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-findwindoww)
 
@@ -81,6 +79,26 @@ HMODULE GetModuleHandleW(
 
 ```
 HMODULE hModule = GetModuleHandle(L"Kernel32");
+```
+
+- [GetModuleInformation](https://docs.microsoft.com/zh-cn/windows/win32/api/psapi/nf-psapi-getmoduleinformation?redirectedfrom=MSDN)
+
+获取指定模块信息
+
+```
+BOOL GetModuleInformation(
+  HANDLE       hProcess,
+  HMODULE      hModule,
+  LPMODULEINFO lpmodinfo,
+  DWORD        cb
+);
+```
+
+例：
+
+```
+MODULEINFO modinfo = { 0 };
+GetModuleInformation(GetCurrentProcess(), GetModuleHandleW(L"test.exe"), &modinfo, sizeof(MODULEINFO));
 ```
 
 - [GetProcAddress](https://docs.microsoft.com/en-us/windows/desktop/api/libloaderapi/nf-libloaderapi-getprocaddress)
@@ -164,6 +182,8 @@ HANDLE CreateToolhelp32Snapshot(
   DWORD th32ProcessID		// //一个进程ID号，用来指定要获取哪一个进程的快照，当获取系统进程列表或获取 当前进程快照时可以设为0
 );
 ```
+
+# 注入
 
 ## 注册表注入DLL
 
@@ -319,6 +339,22 @@ windows下dll的加载顺序大致为：
 导入段包含了一个模块所需的所有DLL的名称，我们可以在文件的导入段中找到那个要被替换的DLL的名称，对它进行修改或在导入段中添加我们的dll
 
 # HOOK
+
+## VEH hook (Vectored Exception Handling）
+
+> VEH 的中文名字： 向量化异常处理（Vectored Exception Handling）
+> 1.VEH 最早出现在XP上 因为只有XP及以上Window版本才支持
+> 目前 Windows 平台下实现和使用的异常处理机制主要有 4 种：
+> 　　筛选器异常处理，结构化异常处理(Structure Exception Handler, SEH)，向量化异常处理(Vectored Exception Handler, VEH)，C++异常处理(C++ Exception Handler, C++EH)。
+> 其中 前三种为操作系统提供的异常处理机制，最后一种为C++提供的
+>
+> VEH通过使用 Win32 API 函数 AddVectoredExceptionHandler可注册新的异常处理函数，函数的参数就是指向 EXCEPTION_POINTERS 结构的指针。同时，增加了函数地址的注册处理程序链表。由于系统中使用一个链表来存储矢量异常处理程序，程序可以安装尽可能多的向量处理器，只要有必要。
+> 在用户模式下发生异常时，异常处理分发函数在内部会先调用遍历 VEH 记录链表的函数， 如果没有找到可以处理异常的注册函数，再开始遍历 SEH 注册链表。
+> 二者之间具体联系：VEH优先权高于SHE，只有所有VEH全不处理某个异常的时候，异常处理权才会到达SHE。只要目标程序中没有利用VEH，那么，你所设计的VEH将是第一个得到控制者。现在采用SEH作为异常处理的普通C/C++程序对你将不会再有干扰，可以通过使用VEH来进行hook处理了。
+> 如果存在调试器，那么控制权转向将会发生新的变化。当异常发生后，首先通知的将会是调试器，调试器不处理才会再返回控制权给VEH；如果VEH不处理，再返回给SHE；若SEH不处理，再给调试器一个机会，如果还不处理，则交由系统处理。
+>
+
+参考：[ (向量化异常处理)VEH hook](https://bbs.pediy.com/thread-190668.htm)
 
 
 
