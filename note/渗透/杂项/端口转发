@@ -1,0 +1,192 @@
+# 正向端口转发
+
+## nc
+
+将外部访问本地的8080端口的流量转发到192.168.1.200的80端口上去
+
+```
+ncat -l 8080 | ncat 192.168.1.200 80
+```
+
+将外部访问本地的5555端口的流量转发到192.168.1.1的3389端口上去
+
+```
+ncat -l 5555 | ncat 192.168.1.1 3389
+```
+
+## netsh
+
+从 Windows XP 开始，Windows中就内置网络端口转发的功能，任何传入本地端口的TCP连接（IPv4或IPv6）都可以被重定向到另一个本地端口，或远程计算机上的端口，并且系统不需要有一个专门用于侦听该端口的服务
+
+```
+netsh interface portproxy add v4tov4 listenport=5555 connectport=3389 connectaddress=192.168.1.1 protocol=tcp
+```
+
+查看端口转发规则
+
+```
+netsh interface portproxy dump
+```
+
+## powershell
+
+利用powershell进行常规的tcp端口转发，支持正反向端口转发，正向socks代理
+
+```
+PS> Powershell -exec -bypass
+PS> Import-Module .\Invoke-SocksProxy.psm1
+PS> Invoke-PortFwd -BindPort 1388 -DestHost 192.168.1.1 -DestPort 3389
+```
+
+## ssh正向tcp端口加密转发
+
+又称ssh本地端口转发
+
+ssh会自动加密和解密所有SSH客户端服务端之间的网络数据，但是ssh还能将其他tcp端口的网络数据通过ssh链接来转发，并提供了相应的加密解密服务，也就是“隧道”
+
+```
+ssh -CfNg -L 8080:127.0.0.1:2222 user@ip //VPS 本地访问VPS:8080就是内网的22端口
+-C：该参数将使ssh压缩所有通过Secure Shell客户端发送的数据，包括输入、输出、错误消息及转发数据。它使用gzip算法，压缩级别可通过设置配制文件中的参数Compressicn Level来指定。这对于缓慢的传输线路特别有用的。但对于传输速度已经很快的网络则显得没有必要。同样，你可以利用配制文件针对每台主机配置这个参数。 
+-f：该参数将ssh连接送入后台执行。这在验证已经完成且TCP/IP转发已经建立的情况下会生效。这对在远程主机上启动X程序显得十分重要。其后用户将被提示要求输入口令(提供的认证代理不运行)，然后将连接送往后台。 
+-g：该参数允许远程主机通过端口转发与主机端口相连，通常情况下仅允许本地主机这样做。 
+-N：不执行远程指令。 
+-R：远程转发
+-L：本地转发
+-D：动态转发，即socks代理
+-p：指定远程ssh服务端口
+-n：后台运行
+-p：安静模式，不要显示任何debug信息
+```
+
+首先要确认如下配置
+
+```
+# vi /etc/ssh/sshd_config
+AllowTcpForwarding yes
+GatewayPorts yes
+TCPKeepAlive yes 保持心跳,防止 ssh 断开
+PasswordAuthentication yes
+# /etc/init.d/ssh restart
+
+```
+
+## iptables
+
+iptables防火墙可以用于创建过滤与NAT规则
+
+开启路由转发
+
+```
+echo 1 > /proc/sys/net/ipv4/ip_forward
+```
+
+iptables的INPUT链配置允许
+
+```
+iptables -P INPUT ACCEPT
+```
+
+设置端口转发规则
+
+```
+iptables -t nat -A PREROUTING -d 192.168.1.6 -p tcp -m tcp --dport 5555 -j DNAT --to-destination 192.168.1.1:3389
+iptables -t nat -A POSTROUTING -d 192.168.1.1 -p tcp -m tcp --dport 3389 -j SNAT --to-source 192.168.1.6
+iptables -A FORWARD -o eth2 -d 192.168.1.1 -p tcp --dport 3389 -j ACCEPT
+```
+
+保存并重启iptables服务
+
+```
+/etc/init.d/iptables save && /etc/init.d/iptables restart
+```
+
+## socat
+
+socket cat，是一个多功能的网络工具
+
+http://www.dest-unreach.org/socat
+
+```
+socat TCP4-LISTEN:5555,reuseaddr,fork TCP4:192.168.1.1:3389
+```
+
+## lcx
+
+lcx是一款强大的内网端口转发工具，用于将内网主机开放的内部端口映射到外网主机（有公网IP）任意端口
+
+## htran
+
+多线程包转发 + Socks5 + 端口重用Socks5 + 反连Socks5。
+
+通过本机d的5555端口来访问 192.168.1.1 的3389端口：
+
+```
+htran -p -tran 5555 192.168.1.1 3389
+```
+
+## EW
+
+EW是一套便携的网络穿透工具，具有SOCKS v5服务架设和端口转发两大核心功能，在复杂网络环境下完成网络穿透。
+
+http://rootkiter.com/EarthWorm
+
+通过5555端口访问 192.168.1.1 主机
+
+```
+ew_win32.exe -s lcx_tran -l 5555 -f 192.168.1.1 -g 3389
+```
+
+## Termite
+
+工具在多种操作系统下均有Agent实现，由于代码为标准C实现，所以未来还将有更多的平台被支持。
+
+Agent节点可相互连接，进而形成一条树状管理拓扑，依赖该拓扑结构，使用者可实时管理拓扑中的任意主机节点
+
+vps上开启监听:
+
+```
+./agent_linux64 -l 3366
+```
+
+内网机器上反向连接：
+
+```
+./agent_linux64 -c 47.84.33.33 -p 3366
+```
+
+## rtcp
+
+利用python的socket端口转发，用于远程维护，如果连接不到远程，会sleep 36s，最多尝试200次（2小时）
+
+```
+./rtcp.py stream1 stream2
+```
+
+- steam 为： l:port 或 c:host:port
+- l:port 表示监听指定的本地端口
+- c:host:port 表示监听远程指定的端口
+
+## fpipe
+
+```
+FPipe -l 1430 -s 1431 -r 1433 192.168.1.1
+```
+
+这句命令的意思是：通过边界机器正向端口转发，1430端口接收外部的流量后利用1431端口转发到内网目标主机端口，1431端口可以指定，也可以不指定
+
+## rinetd
+
+linux下简单好用的工具rinetd，实现端口转发/映射/重定向
+
+```
+wget http://www.boutell.com/rinetd/http/rinetd.tar.gz
+```
+
+
+
+
+
+
+>
+> https://mp.weixin.qq.com/s?__biz=MzI4NjE2NjgxMQ==&mid=2650239824&idx=1&sn=0da3fe3fd1e910b98b99a36cc3948efb&chksm=f3e2c924c49540321397908c0aa5774e0f9000387445e4d311a0ef8440cf4b1040180fad7090&mpshare=1&scene=1&srcid=09198X25aXNbCWidqzkaQcJb&sharer_sharetime=1568898850143&sharer_shareid=5871a7a3f8d573c2b25f794ceaf4eee1&key=222c4445cbdce04924a678677fe96a24cf4fdde9a49556af0c031af896647e8145cc8190b3c97488f6b2880fee3e1bb14e9592a523b5452baf82d41f9014524237528244c3c52d5c9c8ce3e5a37a6f42&ascene=1&uin=MTA4NzA4MjAxMA%3D%3D&devicetype=Windows+10&version=62060841&lang=zh_CN&pass_ticket=mEw%2BLWqQekAddqh3T5waAwbmv0czlHxkHrg8bDuQGVcWs%2Bo2dkHO8D9TbFILThtZ
+>
