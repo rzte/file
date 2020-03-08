@@ -115,8 +115,8 @@ if(Java.available){
 > [hacking-android-apps-with-frida](https://www.codemetrix.net/hacking-android-apps-with-frida-1/?spm=a313e.7916648.0.0.3d6e6d11W32IYf)
 > [frida releases](https://github.com/frida/frida/releases)
 > [Android逆向之hook框架frida篇](https://www.jianshu.com/p/ca8381d3e094)
-
-
+> [抓包二三事](https://api-caller.com/2019/11/05/capture-note/)
+>
 
 
 
